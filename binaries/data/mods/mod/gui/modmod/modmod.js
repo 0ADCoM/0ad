@@ -15,6 +15,7 @@ function init()
 
 	// TODO Move this function out of the savegame code
 	//warn(uneval(Engine.GetEngineInfo()));
+	warn(uneval(Engine.GetAvailableMods()));
 }
 
 function modSelectionChanged()
