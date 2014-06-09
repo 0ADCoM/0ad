@@ -28,6 +28,8 @@
 #include "lib/file/file_system.h"
 #include "lib/file/file_util.h"
 
+#include <algorithm>
+
 /**
  * Returns a JS object containing a listing of available mods that
  * have a modname.json file in their modname folder. The returned
@@ -62,6 +64,8 @@ CScriptVal JSI_Mod::GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate)
 
 	// TODO check status (and do something sensible)
 	GetDirectoryEntries(modPath, NULL, &modDirs);
+	// Sort modDirs so that we can do a fast lookup below
+	std::sort(modDirs.begin(), modDirs.end());
 
 	for (DirectoryNames::iterator iter = modDirs.begin(); iter != modDirs.end(); ++iter)
 	{
@@ -81,6 +85,11 @@ CScriptVal JSI_Mod::GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate)
 
 	for (DirectoryNames::iterator iter = modDirsUser.begin(); iter != modDirsUser.end(); ++iter)
 	{
+		// If we are in a dev copy we do not mount mods in the user mod folder that
+		// are already present in the mod folder, thus we skip those here.
+		if (dev && std::binary_search(modDirs.begin(), modDirs.end(), *iter))
+			continue;
+
 		std::string buffer;
 		CONTINUE_IF_ERR(ReadFile(modUserPath / *iter, iter->ChangeExtension(".json"), buffer));
 
@@ -88,15 +97,6 @@ CScriptVal JSI_Mod::GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate)
 
 		// Valid mod, add it to our structure
 		JS::Value json = jsonContent.get();
-
-		// If we are in a development copy and this mod was already added, ignore it
-		// TODO make this skip mods that are present in the normal mod path (but that have no json)
-		// and are also present in the user mod path (where they have a json)
-		// See GameSetup.cpp's InitVfs()
-		JSBool found;
-		if (dev && JS_HasProperty(cx, obj, utf8_from_wstring(iter->string()).c_str(), &found) && found)
-			continue;
-
 		JS_SetProperty(cx, obj, utf8_from_wstring(iter->string()).c_str(), &json);
 	}
 #undef CONTINUE_IF_ERR
