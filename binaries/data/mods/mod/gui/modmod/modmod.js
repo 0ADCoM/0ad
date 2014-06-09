@@ -9,7 +9,8 @@ function init()
 	list.list_modTotalSize = ["123", "1", "0"];
 	list.list = ["public", "rote", "bla"]; // Use the mod folder name here
 	// TODO rename public to 0ad?
-	// TODO filter the mod mod
+
+	// TODO move _all_ files (images, xml) that are needed in this mod over from public
 
 	// TODO Check savegame code to display nice mod names (after we have the logic for that)
 
