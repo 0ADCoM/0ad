@@ -33,6 +33,7 @@
 
 static const int SAVED_GAME_VERSION_MAJOR = 1; // increment on incompatible changes to the format
 static const int SAVED_GAME_VERSION_MINOR = 0; // increment on compatible changes to the format
+// TODO move this to some mod specific code (eg ps/Mods.* or ps/GameSetup/Mods.*)
 std::vector<std::string> g_modsLoaded; // list of mods loaded
 
 // TODO: we ought to check version numbers when loading files
@@ -260,6 +261,7 @@ bool SavedGames::DeleteSavedGame(const std::wstring& name)
 	return true;
 }
 
+// TODO move this to some mod specific code
 CScriptValRooted SavedGames::GetEngineInfo(ScriptInterface& scriptInterface) 
 { 
 	CScriptValRooted metainfo; 

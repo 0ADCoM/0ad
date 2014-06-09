@@ -392,6 +392,7 @@ ErrorReactionInternal psDisplayError(const wchar_t* UNUSED(text), size_t UNUSED(
 	return ERI_NOT_IMPLEMENTED;
 }
 
+// TODO engine_restart
 static std::vector<CStr> GetMods(const CmdLineArgs& args)
 {
 	std::vector<CStr> mods = args.GetMultiple("mod");

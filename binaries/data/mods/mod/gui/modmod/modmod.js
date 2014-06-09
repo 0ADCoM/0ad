@@ -32,4 +32,5 @@ function onTick()
 function closePage()
 {
 	Engine.SwitchGuiPage("page_pregame.xml", {});
+	//Engine.RestartEngine();
 }

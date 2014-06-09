@@ -30,6 +30,8 @@
 
 #include <algorithm>
 
+extern void restart_engine();
+
 /**
  * Returns a JS object containing a listing of available mods that
  * have a modname.json file in their modname folder. The returned
@@ -104,7 +106,13 @@ CScriptVal JSI_Mod::GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate)
 	return OBJECT_TO_JSVAL(obj);
 }
 
+void JSI_Mod::RestartEngine(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
+{
+	restart_engine();
+}
+
 void JSI_Mod::RegisterScriptFunctions(ScriptInterface& scriptInterface)
 {
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Mod::GetAvailableMods>("GetAvailableMods");
+	scriptInterface.RegisterFunction<void, &JSI_Mod::RestartEngine>("RestartEngine");
 }
