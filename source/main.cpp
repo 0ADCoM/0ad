@@ -389,6 +389,7 @@ static void MainControllerInit()
 
 static void MainControllerShutdown()
 {
+	in_reset_handlers();
 }
 
 
@@ -407,6 +408,14 @@ void restart_mainloop_in_atlas()
 {
 	quit = true;
 	restart_in_atlas = true;
+}
+
+static bool restart = false;
+// trigger an orderly shutdown and restart the game.
+void restart_engine()
+{
+	quit = true;
+	restart = true;
 }
 
 // moved into a helper function to ensure args is destroyed before
@@ -470,14 +479,19 @@ static void RunGameOrAtlas(int argc, const char* argv[])
 	const double res = timer_Resolution();
 	g_frequencyFilter = CreateFrequencyFilter(res, 30.0);
 
-	// run the game
-	Init(args, 0);
-	InitGraphics(args, 0);
-	MainControllerInit();
-	while(!quit)
-		Frame();
-	Shutdown(0);
-	MainControllerShutdown();
+	do
+	{
+		restart = false;
+		quit = false;
+		// run the game
+		Init(args, 0);
+		InitGraphics(args, 0);
+		MainControllerInit();
+		while(!quit)
+			Frame();
+		Shutdown(0);
+		MainControllerShutdown();
+	} while (restart);
 
 	if (restart_in_atlas)
 	{
