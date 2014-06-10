@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -479,18 +479,20 @@ static void RunGameOrAtlas(int argc, const char* argv[])
 	const double res = timer_Resolution();
 	g_frequencyFilter = CreateFrequencyFilter(res, 30.0);
 
+	int flags = INIT_MODS;
 	do
 	{
 		restart = false;
 		quit = false;
 		// run the game
-		Init(args, 0);
+		Init(args, flags); // TODO if we want to restart here (eg config mod setting) do not init everything
 		InitGraphics(args, 0);
 		MainControllerInit();
 		while(!quit)
 			Frame();
 		Shutdown(0);
 		MainControllerShutdown();
+		flags &= ~INIT_MODS;
 	} while (restart);
 
 	if (restart_in_atlas)

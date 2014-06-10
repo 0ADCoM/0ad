@@ -34,7 +34,7 @@
 static const int SAVED_GAME_VERSION_MAJOR = 1; // increment on incompatible changes to the format
 static const int SAVED_GAME_VERSION_MINOR = 0; // increment on compatible changes to the format
 // TODO move this to some mod specific code (eg ps/Mods.* or ps/GameSetup/Mods.*)
-std::vector<std::string> g_modsLoaded; // list of mods loaded
+std::vector<CStr> g_modsLoaded; // list of mods loaded
 
 // TODO: we ought to check version numbers when loading files
 

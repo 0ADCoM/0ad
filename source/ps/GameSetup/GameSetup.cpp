@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -393,22 +393,24 @@ ErrorReactionInternal psDisplayError(const wchar_t* UNUSED(text), size_t UNUSED(
 }
 
 // TODO engine_restart
-static std::vector<CStr> GetMods(const CmdLineArgs& args)
+static std::vector<CStr> GetMods(const CmdLineArgs& args, int flags)
 {
-	std::vector<CStr> mods = args.GetMultiple("mod");
-	// List of the mods, to be used by the Gui
-	g_modsLoaded.clear();
-	for (size_t i = 0; i < mods.size(); ++i)
-		g_modsLoaded.push_back((std::string)mods[i]);
-	// TODO: It would be nice to remove this hard-coding
-	mods.insert(mods.begin(), "public");
+	const bool init_mods = (flags & INIT_MODS) == INIT_MODS;
+
+	if (!init_mods)
+		return g_modsLoaded;
+
+	g_modsLoaded = args.GetMultiple("mod");
+	// TODO: It would be nice to remove this hard-coding of public
+	g_modsLoaded.insert(g_modsLoaded.begin(), "public");
+	g_modsLoaded.insert(g_modsLoaded.begin(), "mod");
 
 	// Add the user mod if not explicitly disabled or we have a dev copy so
 	// that saved files end up in version control and not in the user mod.
 	if (!InDevelopmentCopy() && !args.Has("noUserMod"))
-		mods.push_back("user");
+		g_modsLoaded.push_back("user");
 
-	return mods;
+	return g_modsLoaded;
 }
 
 static void InitVfs(const CmdLineArgs& args, int flags)
@@ -443,7 +445,7 @@ static void InitVfs(const CmdLineArgs& args, int flags)
 	// Engine localization files.
 	g_VFS->Mount(L"l10n/", paths.RData()/"l10n"/"");
 
-	const std::vector<CStr> mods = GetMods(args);
+	const std::vector<CStr> mods = GetMods(args, flags);
 
 	OsPath modPath = paths.RData()/"mods";
 	OsPath modUserPath = paths.UserData()/"mods";
@@ -907,6 +909,8 @@ void Init(const CmdLineArgs& args, int flags)
 
 	// g_ConfigDB, command line args, globals
 	CONFIG_Init(args);
+
+	// TODO TODO TODO check for config mod selection/restart
 
 	// before scripting 
 	// JS debugger temporarily disabled during the SpiderMonkey upgrade (check trac ticket #2348 for details)
