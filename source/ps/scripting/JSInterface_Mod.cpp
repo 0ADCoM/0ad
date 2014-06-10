@@ -22,6 +22,7 @@
 
 #include "ps/GameSetup/GameSetup.h"
 #include "ps/GameSetup/Paths.h"
+#include "ps/SavedGame.h" // g_modsLoaded; TODO move this somewhere else
 #include "ps/scripting/JSInterface_Mod.h"
 
 #include "lib/utf8.h"
@@ -53,6 +54,8 @@ CScriptVal JSI_Mod::GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate)
 	ScriptInterface* scriptInterface = pCxPrivate->pScriptInterface;
 	JSContext* cx = scriptInterface->GetContext();
 	JSObject* obj = JS_NewObject(cx, NULL, NULL, NULL);
+
+	// TODO store those paths somewhere so we can access them later on (within Paths, or some Mod code)
 
 	CmdLineArgs args; // TODO this is bogus, but gets us somewhere, actually do something sane here
 	const Paths paths(args); // ps/GameSetup/Paths.h (and get the cmdargs from somewhere)
@@ -111,8 +114,15 @@ void JSI_Mod::RestartEngine(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 	restart_engine();
 }
 
+void JSI_Mod::SetMods(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::vector<CStr> mods)
+{
+	g_modsLoaded = mods;
+	// TODO write config settings too (maybe do so at the callsite)
+}
+
 void JSI_Mod::RegisterScriptFunctions(ScriptInterface& scriptInterface)
 {
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Mod::GetAvailableMods>("GetAvailableMods");
 	scriptInterface.RegisterFunction<void, &JSI_Mod::RestartEngine>("RestartEngine");
+	scriptInterface.RegisterFunction<void, std::vector<CStr>, &JSI_Mod::SetMods>("SetMods");
 }

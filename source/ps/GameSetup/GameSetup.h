@@ -46,7 +46,10 @@ enum InitFlags
 
 	// avoid setting display_error app hook
 	// needed by map editor because it has its own wx error display
-	INIT_HAVE_DISPLAY_ERROR = 4
+	INIT_HAVE_DISPLAY_ERROR = 4,
+
+	// initialize the mod folders from command line parameters
+	INIT_MODS = 8
 };
 
 /**

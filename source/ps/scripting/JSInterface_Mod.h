@@ -26,6 +26,7 @@ namespace JSI_Mod
 	void RegisterScriptFunctions(ScriptInterface& scriptInterface);
 	CScriptVal GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate);
 	void RestartEngine(ScriptInterface::CxPrivate* pCxPrivate);
+	void SetMods(ScriptInterface::CxPrivate* pCxPrivate, std::vector<CStr> mods);
 }
 
 #endif

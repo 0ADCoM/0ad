@@ -15,12 +15,13 @@ function init()
 	// TODO Check savegame code to display nice mod names (after we have the logic for that)
 
 	// TODO Move this function out of the savegame code
-	//warn(uneval(Engine.GetEngineInfo()));
 	warn(uneval(Engine.GetAvailableMods()));
 }
 
 function modSelectionChanged()
 {
+//	warn(uneval(Engine.GetEngineInfo()));
+//	Engine.SetMods(["public", "rote"]);
 	;
 }
 
@@ -32,5 +33,5 @@ function onTick()
 function closePage()
 {
 	Engine.SwitchGuiPage("page_pregame.xml", {});
-	//Engine.RestartEngine();
+//	Engine.RestartEngine();
 }
