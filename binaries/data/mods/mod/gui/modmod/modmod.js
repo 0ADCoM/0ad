@@ -19,19 +19,22 @@
 JSON structure as given by the Engine:
 
 {
-	"mod_1": { 
-		label: "Mod 1",
-		type: "content|functionality|mixed/mod-pack",
-		site_url: "http://modmod.wfg.com/",
+	"foldername1": {
+		name: "shortname", // eg "0ad", "rote"
+		version: "0.0.16",
+		label: "Nice Mod Name", // eg "0 A.D. - Empires Ascendant"
+		type: "content|functionality|mixed/mod-pack", // TODO
+		url: "http://modmod.wfg.com/", // URL of the mod
 		description: "",
-		total_size: 0,
-		dependencies: [],
-		is_experimental: true
+		total_size: 0, // TODO not really applicable currently (can be added later on if we really need it)
+		dependencies: [], // (shortname({<,<=,==,>=,>}version)?)+
+		is_experimental: true // TODO check if this is useful
 	},
-	"mod_2": {
+	"foldername2": {
 		label: "Mod 2",
+		version: "1.1",
 		type: "content|functionality|mixed/mod-pack",
-		site_url: "http://play0ad.wfg.com/",
+		url: "http://play0ad.wfg.com/",
 		description: "",
 		total_size: 0,
 		dependencies: [],
@@ -82,11 +85,8 @@ var g_selectedObjects = []; // GUI objects/xml nodes.
  */
 function init()
 {
-	/*
-	// TODO uncomment once the engine functionality is there.
-	g_modsAvailableJSON = Engine.GetModInfoJSON();
-	*/
-	// TODO Comment out test data.
+	// TODO Switch to actual mod data
+	//g_modsAvailableJSON = Engine.GetModInfoJSON();
 	g_modsAvailableJSON = { 
 		"0ad": {
 			label: "0 A.D.",
@@ -116,10 +116,7 @@ function init()
 			is_experimental: true
 		}
 		//TODO Distinguish between official/checked + community + 3rd party/unchecked mods. (allow to set this level of security for multiplayer games on a per game level. Only allow if all the host's mods are available.)
-		
-		/* More Mods. */
-
-	}
+	};
 
 
 	// Enabled mods GUI list is empty when initializing and if no mod configuration has been saved to the config file before.
@@ -187,18 +184,6 @@ function getStillAvailableEnabledModsInJsonUsingTheListOfEnabledModsAsStoredInTh
 	}
 	// Only the still available mods remain.
 	return enabledModsAsPerConfigThatAreStillAvailable;
-}
-
-function arrayToString(array)
-{
-	var string = "";
-	var space = "";
-	for each (var entry in array)
-	{
-		string += space + entry;
-		space = " ";
-	}
-	return string;
 }
 
 /**
@@ -293,7 +278,7 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 
 		var modDependencies = [ 'neverEverChanging-modInfoFile-DownloadLink', 'another-modInfoFile-DownloadLink', 'OR mod(Folder)Name', '' ];
 		if (jsonToReadModsFrom[key].dependencies)
-			modDependencies = arrayToString(jsonToReadModsFrom[key].dependencies);
+			modDependencies = jsonToReadModsFrom[key].dependencies.join(" ");
 		modDependenciesList.push(modDependencies);
 	}
 
@@ -315,16 +300,6 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 	modTypeFilter.list = g_modTypes;
 }
 
-function addIfNotExists(obj, array)
-{
-	// Object already exists in the array?
-	if (array.indexOf(obj) !== -1)
-		return ;
-
-	// else add the object:
-	array[array.length] = obj;
-}
-
 /*
  Note:  An object's name is somewhat unique.
  Note:  Currently the engine does not return
@@ -339,17 +314,7 @@ var modEnabledContext = {
 };
 function modsEnabledListSelectionChanged(obj)
 {
-/*
-	if (typeof obj == 'string')
-		obj = Engine.GetGUIObjectByName(obj);
-	if (!obj) 
-		return;
-
-	// Add to selection if not already happened previously:
-	addIfNotExists(obj, modEnabledContext.selected_list_row_objects);
-	// Visualize that row is selected:
-	obj.style = "RowSelected";
-*/
+	;
 }
 
 function arePreconditionsMet()
@@ -364,18 +329,19 @@ function arePreconditionsMet()
 
 function getPositionByValue(listObjectName, value)
 {
-	if (listObjectName && value)
+	if (!listObjectName || !value)
+		return -1;
+
+	var pos = -1;
+	var gui_obj = Engine.GetGUIObjectByName(listObjectName);
+	var gui_list = gui_obj.list;
+	var selected_object = gui_list[gui_obj.selected];
+	while (++pos < gui_list.length)
 	{
-		var pos = -1;
-		var gui_obj = Engine.GetGUIObjectByName(listObjectName);
-		var gui_list = gui_obj.list;
-		var selected_object = gui_list[gui_obj.selected];
-		while (++pos < gui_list.length)
-		{
-			if (gui_list[pos] == selected_object)
-				return pos;
-		}
+		if (gui_list[pos] == selected_object)
+			return pos;
 	}
+
 	return -1;
 }
 
@@ -389,10 +355,10 @@ function addSelectedToList(sourceListObjectName, sourceJson, targetListObjectNam
 	var list = gui_obj.list;
 	var pos = gui_obj.selected;
 	var name = list[pos];
-	warn('name: ' + name + ' at pos: ' + pos + ' from list: '
-	    + list);
+	warn('name: ' + name + ' at pos: ' + pos + ' from list: ' + list);
 
-	// find the mod data entry to add:
+	// find the mod data entry to add: 
+	// TODO for ... of?
 	var json_key = null;
 	for each (json_key in Object.keys(sourceJson))
 		if (json_key == name)
@@ -424,8 +390,7 @@ function removeSelectedFromList(listObjectName, jsonToRemoveFrom, jsonToRemoveFr
 
 	// The recreation way:
 	var name = obj.list[pos];
-	warn('name: ' + name + ' at pos: ' + pos + ' from list: '
-	    + obj.list);
+	warn('name: ' + name + ' at pos: ' + pos + ' from list: ' + obj.list);
 
 	// find the mod data entry for removal:
 	var keys = Object.keys(jsonToRemoveFrom);
@@ -544,21 +509,6 @@ function filterMod(mod)
 	return false;
 }
 
-
-
-function deleteSelectedMod(listObjectName)
-{
-	var obj = Engine.GetGUIObjectByName(listObjectName);
-	var modFolderName = obj.list[obj.selected];
-	// TODO
-	Engine.deleteMod(modFolderName);
-}
-
-function onTick()
-{
-	;
-}
-
 function closePage()
 {
 	Engine.SwitchGuiPage("page_pregame.xml", {});
@@ -578,60 +528,46 @@ function moveCurrItem(objectName, moveBy = 1, objectNameAppend = '', guiUpdate_c
 	objectName = objectName + "" + objectNameAppend;
 	warn('moveCurrItem: ' + objectName);
 	// reuse the check for null and if something is selected.
-	if (getCurrItemValue(objectName) != "")
+	if (getCurrItemValue(objectName) == "")
+		return;
+
+	var selectedIndex = Engine.GetGUIObjectByName(objectName).selected;
+	var listItemCount = getNumItems(objectName);
+	warn('selectedIndex: ' + selectedIndex + ' to be moved by ' + moveBy);
+
+	// Check if move would be a nop
+	if ((moveBy < 0 && selectedIndex < 1)
+	    || (moveBy > 0 && selectedIndex == listItemCount - 1))
+		return;
+	
+	var source_index = selectedIndex;
+	var target_index = source_index + moveBy;
+	// Is target object index valid?
+	if (target_index < 0 || target_index >= listItemCount)
+		return;
+
+	// => incremental move to destination position. shift all passed elements.
+	var list = Engine.GetGUIObjectByName(objectName).list;
+	while (selectedIndex != target_index)
 	{
-		var selectedIndex = Engine.GetGUIObjectByName(objectName).selected;
-		var listItemCount = getNumItems(objectName);
-		warn('selectedIndex: ' + selectedIndex 
-		    + ' to be moved by ' + moveBy);
-
-		// Move up but already First element?
-		if (moveBy < 0 && selectedIndex < 1)
-		{
-			// => Nothing to do.
-			warn('Already first element.');
-		}
-		// Move down but already Last element?
-		else if (moveBy > 0 && selectedIndex == listItemCount - 1)
-		{
-			// => Nothing to do.
-			warn('Already last element.');
-		}
-		else
-		{
-			// => Move.
-			var source_index = selectedIndex;
-			var target_index = source_index + moveBy;
-			// Is target object index valid?
-			if (target_index > -1 && target_index < listItemCount)
-			{
-				// => incremental move to destination position. shift all passed elements.
-				var list = Engine.GetGUIObjectByName(objectName).list;
-				while (selectedIndex != target_index)
-				{
-					var swap_index1 = selectedIndex;
-					// use the sign for the correct direction, but normalize to 1
-					// as we must swap the object directly preceding or succeding.
-					// Otherwise the order of the objects is not upheld.
-					var swap_index2 = selectedIndex + moveBy / Math.abs(moveBy);
-					//swap(objectName, swap_index1, swap_index2);
-					var tmp = list[swap_index1];
-					list[swap_index1] = list[swap_index2];
-					list[swap_index2] = tmp;
-
-					selectedIndex = swap_index2;
-				}
-				// Selected object reached the new position. Update the enginescoped list:
-				Engine.GetGUIObjectByName(objectName).list = list;
-				Engine.GetGUIObjectByName(objectName).selected = selectedIndex;
-
-				if (guiUpdate_callback)
-				{
-					// update the GUI sublists to the main list.
-					guiUpdate_callback(objectName);
-				}
-			}
-		}
+		var swap_index1 = selectedIndex;
+		// use the sign for the correct direction, but normalize to 1
+		// as we must swap the object directly preceding or succeding.
+		// Otherwise the order of the objects is not upheld.
+		var swap_index2 = selectedIndex + moveBy / Math.abs(moveBy);
+		//swap(objectName, swap_index1, swap_index2);
+		var tmp = list[swap_index1];
+		list[swap_index1] = list[swap_index2];
+		list[swap_index2] = tmp;
+	
+		selectedIndex = swap_index2;
 	}
+
+	// Selected object reached the new position. Update the enginescoped list:
+	Engine.GetGUIObjectByName(objectName).list = list;
+	Engine.GetGUIObjectByName(objectName).selected = selectedIndex;
+	
+	if (guiUpdate_callback)
+		guiUpdate_callback(objectName);
 }
 
