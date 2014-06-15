@@ -98,6 +98,50 @@
 		</object>
 
 
+		<!-- All Mods Wrapper -->
+		<object name="modsAvailable" size="20 100 100%-20 75%-4">
+			<object style="ModernLabelText" type="text" size="0 5 100% 25">
+				<translatableAttribute id="caption">Available Mods</translatableAttribute>
+			</object>
+
+			<!-- LIST -->
+			<object name="modsAvailableList" style="ModernList" type="olist" size="0 25 95% 100%" font="sans-stroke-13">
+				<action on="SelectionChange">modsAvailableListSelectionChanged();</action>
+
+				<!-- List headers -->
+				<def id="name" color="100 100 200" width="10%">
+					<translatableAttribute id="heading">Folder Name</translatableAttribute>
+				</def>
+				<def id="modLabel" color="0 60 0" width="15%">
+					<translatableAttribute id="heading">Mod Label</translatableAttribute>
+				</def>
+				<def id="modType" color="0 128 128" width="10%">
+					<translatableAttribute id="heading">Mod Type</translatableAttribute>
+				</def>
+				<!-- TODO: Clarify if really needed as the website could also go into the mod's description. -->
+				<def id="modURL" color="128 128 128" width="15%">
+					<translatableAttribute id="heading">Website</translatableAttribute>
+				</def>
+				<def id="modDescription" color="128 128 128" width="15%">
+					<translatableAttribute id="heading">Description</translatableAttribute>
+				</def>
+				<def id="modTotalSize" color="128 128 128" width="15%">
+					<translatableAttribute id="heading" context="folder or filesize">Total Size / KB</translatableAttribute>
+				</def>
+				<def id="modDependencies" color="128 128 128" width="15%">
+					<translatableAttribute id="heading">Dependencies</translatableAttribute>
+				</def>
+			</object>
+
+			<object type="button" style="ModernButtonRed" size="95% 23 100% 90%+12">
+				<translatableAttribute id="caption">Enable</translatableAttribute>
+				<action on="Press">
+					addSelectedToList('modsAvailableList', g_modsAvailableJSON, 'modsEnabledList', g_modsEnabledJSON, true);
+				</action>
+			</object>
+		</object>
+
+
 		<!-- Enabled Mods Wrapper -->
 		<object name="modsEnabled" size="20 75% 100%-20 100%-50">
 			<object style="ModernLabelText" type="text" size="0 5 100% 25">
@@ -119,7 +163,7 @@
 					<translatableAttribute id="heading">Mod Type</translatableAttribute>
 				</def>
 				<!-- TODO: Clarify if really needed as the website could also go into the mod's description. -->
-				<def id="modSiteURL" color="128 128 128" width="15%">
+				<def id="modURL" color="128 128 128" width="15%">
 					<translatableAttribute id="heading">Website</translatableAttribute>
 				</def>
 				<def id="modDescription" color="128 128 128" width="15%">
@@ -144,50 +188,6 @@
 			<object type="button" style="ModernButtonRed" size="95% 60%+10 100% 100%+2">
 				<translatableAttribute id="caption">Down</translatableAttribute>
 				<action on="Press">moveCurrItem(this.parent.name, 1, "List");</action>
-			</object>
-		</object>
-
-
-		<!-- All Mods Wrapper -->
-		<object name="modsAvailable" size="20 100 100%-20 75%-4">
-			<object style="ModernLabelText" type="text" size="0 5 100% 25">
-				<translatableAttribute id="caption">Available Mods</translatableAttribute>
-			</object>
-
-			<!-- LIST -->
-			<object name="modsAvailableList" style="ModernList" type="olist" size="0 25 95% 100%" font="sans-stroke-13">
-				<action on="SelectionChange">modsAvailableListSelectionChanged();</action>
-
-				<!-- List headers -->
-				<def id="name" color="100 100 200" width="10%">
-					<translatableAttribute id="heading">Folder Name</translatableAttribute>
-				</def>
-				<def id="modLabel" color="0 60 0" width="15%">
-					<translatableAttribute id="heading">Mod Label</translatableAttribute>
-				</def>
-				<def id="modType" color="0 128 128" width="10%">
-					<translatableAttribute id="heading">Mod Type</translatableAttribute>
-				</def>
-				<!-- TODO: Clarify if really needed as the website could also go into the mod's description. -->
-				<def id="modSiteURL" color="128 128 128" width="15%">
-					<translatableAttribute id="heading">Website</translatableAttribute>
-				</def>
-				<def id="modDescription" color="128 128 128" width="15%">
-					<translatableAttribute id="heading">Description</translatableAttribute>
-				</def>
-				<def id="modTotalSize" color="128 128 128" width="15%">
-					<translatableAttribute id="heading" context="folder or filesize">Total Size / KB</translatableAttribute>
-				</def>
-				<def id="modDependencies" color="128 128 128" width="15%">
-					<translatableAttribute id="heading">Dependencies</translatableAttribute>
-				</def>
-			</object>
-
-			<object type="button" style="ModernButtonRed" size="95% 23 100% 90%+12">
-				<translatableAttribute id="caption">Enable</translatableAttribute>
-				<action on="Press">
-					addSelectedToList('modsAvailableList', g_modsAvailableJSON, 'modsEnabledList', g_modsEnabledJSON, true);
-				</action>
 			</object>
 		</object>
 

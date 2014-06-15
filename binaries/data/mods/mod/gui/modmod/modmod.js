@@ -1,25 +1,16 @@
-/*============================================================
+// TODO rename public to 0ad?
+// TODO move _all_ files (images, xml) that are needed in this mod over from public
+// TODO Check savegame code to display nice mod names (after we have the logic for that)
+// TODO Move this function out of the savegame code
 
-	// TODO rename public to 0ad?
-
-	// TODO move _all_ files (images, xml) that are needed in this mod over from public
-
-	// TODO Check savegame code to display nice mod names (after we have the logic for that)
-
-	// TODO Move this function out of the savegame code
-	//warn(uneval(Engine.GetEngineInfo()));
-
-	// TODO Add functionality to allow multiple selected GUI objects?
-	// TODO Add dependency checking when enabling a mod.
-*/
-
-
+// TODO Add functionality to allow multiple selected GUI objects?
+// TODO Add dependency checking when enabling a mod.
 
 /*============================================================
 JSON structure as given by the Engine:
 
 {
-	"foldername1": {
+	"foldername1": { // this is the content of the json file in a specific mod
 		name: "shortname", // eg "0ad", "rote"
 		version: "0.0.16",
 		label: "Nice Mod Name", // eg "0 A.D. - Empires Ascendant"
@@ -39,19 +30,16 @@ JSON structure as given by the Engine:
 		total_size: 0,
 		dependencies: [],
 		is_experimental: false
-	},
+	}
 }
 */
 
-
-
-/*=======ATTRIBUTES===========================================*/
 var g_modsEnabledJSON = {};
 var g_modsAvailableJSON = {};
 var g_modsEnabledJSON_keys_ordered = [];
 
-var SORT_BY_OPTION_ALPHANUMERICAL = 1;
-var SORT_BY_OPTION_TOTAL_SIZE = 2;
+const SORT_BY_OPTION_ALPHANUMERICAL = 1;
+const SORT_BY_OPTION_TOTAL_SIZE = 2;
 var g_sortByOptions;
 g_sortByOptions = [];
 g_sortByOptions[SORT_BY_OPTION_ALPHANUMERICAL] = "Alphanumerical";
@@ -62,11 +50,7 @@ var g_modTypes = [];
 
 //======= Optional: Multiple Selected Objects TODO
 var g_selectedObjects = []; // GUI objects/xml nodes.
-
 //======= Optional -END 
-
-
-
 
 
 /*=======FUNCTIONS============================================*/
@@ -79,9 +63,9 @@ var g_selectedObjects = []; // GUI objects/xml nodes.
 
 
 /**
-   Fetches the mod lists in JSON from the Engine.
-   Initiates a first creation of the GUI lists.
-   Enabled mods are read from the Configuration and checked if still available.
+ * Fetches the mod lists in JSON from the Engine.
+ * Initiates a first creation of the GUI lists.
+ * Enabled mods are read from the Configuration and checked if still available.
  */
 function init()
 {
@@ -91,7 +75,7 @@ function init()
 		"0ad": {
 			label: "0 A.D.",
 			type: "Mixed/ModPack/Game",
-			site_url: "http://play0ad.com/",
+			url: "http://play0ad.com/",
 			description: "Main Game + Base for most other mods (It's very likely you need to enable this!).",
 			total_size: "100MB",
 			dependencies: [],
@@ -100,7 +84,7 @@ function init()
 		"eastern_civilizations": {
 			label: "Rise of the East",
 			type: "Mixed/ModPack/Addon",
-			site_url: "http://play0ad.com/",
+			url: "http://play0ad.com/",
 			description: "Adds all Eastern civilizations over the course of history to 0AD.",
 			total_size: "300MB",
 			dependencies: [ "0ad" ],
@@ -109,7 +93,7 @@ function init()
 		"hundred_years_war": {
 			label: "Hundred Years War",
 			type: "Content.Map Content.Campaign",
-			site_url: "http://forum.wildfiregames.com/",
+			url: "http://forum.wildfiregames.com/",
 			description: ".",
 			total_size: "900KB",
 			dependencies: [ "0ad", "millennium" ], //first item loaded/mounted first
@@ -128,7 +112,7 @@ function init()
 }
 
 /**
-   Recreating both the available and enabled mods lists.
+ * Recreating both the available and enabled mods lists.
  */
 function generateModsLists()
 {
@@ -138,39 +122,28 @@ function generateModsLists()
 	generateModsList('modsEnabledList', g_modsEnabledJSON);
 }
 
-/**
-   
- */
 function storeLabelsOfEnabledModsInConfig(ordered = true)
 {
-
-	var modsEnabledLabelsAsString = "";
-	var modsEnabledLabels = [];
-
 	var keys = Object.keys(g_modsEnabledJSON);
 	if (ordered && g_modsEnabledJSON_keys_ordered)
 		keys = g_modsEnabledJSON_keys_ordered;
 
-	for each (var enabledMod_key in keys)
-		modsEnabledLabelsAsString += " " + g_modsEnabledJSON[enabledMod_key].label;
+	warn("Save enabled mods: '"+keys.join(" ")+"'");
 
-	warn('Saving enabled mods to config: ' + modsEnabledLabelsAsString);
-	Engine.ConfigDB_CreateValue("user", "enabledMods", modsEnabledLabelsAsString);
+	//warn('Saving enabled mods to config: ' + modsEnabledLabelsAsString);
+	//Engine.ConfigDB_CreateValue("user", "enabledMods", modsEnabledLabelsAsString);
 }
 
-/**
-   
- */
 function getStillAvailableEnabledModsInJsonUsingTheListOfEnabledModsAsStoredInTheConfigurationFile()
 {
 	var enabledModsAsPerConfigThatAreStillAvailable = {};
 
 	// check each as per config enabled mod if the mod is still available:
 	var enabledModsAsPerConfig = Engine.ConfigDB_GetValue("user", "enabledMods");
-	for each (var enabledModAsPerConfigLabel in enabledModsAsPerConfig)
+	for (var enabledModAsPerConfigLabel of enabledModsAsPerConfig)
 	{
 		// Is mod still available?
-		for each (var availableMod_key in Object.keys(g_modsAvailableJSON))
+		for (var availableMod_key of Object.keys(g_modsAvailableJSON))
 		{
 			var availableMod = g_modsAvailableJSON[availableMod_key];
 			// check for the label as the folder name might have been renamed as those have to be unique (then we could potentially fail to find the folder name).
@@ -187,8 +160,8 @@ function getStillAvailableEnabledModsInJsonUsingTheListOfEnabledModsAsStoredInTh
 }
 
 /**
-   (Re-)Generate List of all mods.
-   @param listObjectName The GUI object's name (e.g. "modsEnabledList", "modsAvailableList")
+ * (Re-)Generate List of all mods.
+ * @param listObjectName The GUI object's name (e.g. "modsEnabledList", "modsAvailableList")
  */
 function generateModsList(listObjectName, jsonToReadModsFrom)
 {
@@ -200,7 +173,8 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 	// sort alphanumerically:
 	var jsonToReadModsFrom_keys_sorted = Object.keys(jsonToReadModsFrom);
 	if (!GUIList_sortBy || GUIList_sortBy.selected == 0
-	    || GUIList_sortBy.selected == -1) {
+	    || GUIList_sortBy.selected == -1)
+	{
 
 		jsonToReadModsFrom_keys_sorted.sort(function(akey, bkey)
 		{
@@ -234,10 +208,10 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 	var modLabelList = [];
 	var modDescriptionList = [];
 	var modTypeList = [];
-	var modSiteUrlList = [];
+	var modUrlList = [];
 	var modTotalSizeList = [];
 	var modDependenciesList = [];
-	for each (var key in jsonToReadModsFrom_keys_sorted)
+	for (var key of jsonToReadModsFrom_keys_sorted)
 	{
 		//warn('key: ' + key);
 
@@ -266,10 +240,10 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 			modType = jsonToReadModsFrom[key].type;
 		modTypeList.push(modType);
 
-		var modSiteURL = "http://wildfiregames.com/";
-		if (jsonToReadModsFrom[key].site_url)
-			modSiteURL = jsonToReadModsFrom[key].site_url;
-		modSiteUrlList.push(modSiteURL);
+		var modURL = "http://wildfiregames.com/";
+		if (jsonToReadModsFrom[key].url)
+			modURL = jsonToReadModsFrom[key].url;
+		modUrlList.push(modURL);
 
 		var modTotalSize = "0KB";
 		if (jsonToReadModsFrom[key].total_size)
@@ -288,7 +262,7 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 	obj.list_name = modFolderNameList;
 	obj.list_modLabel = modLabelList;//["0 A.D.", "Rise of the East", "bla"];
 	obj.list_modType = modTypeList;//["Mixed/ModPack/Game", "Content.Map", "Content.Campaign", "Content.Civilization", "Content.Textures", "Content.3DModel", "Functionality"];
-	obj.list_modSiteURL = modSiteUrlList;//["play0ad.com", "", ""];
+	obj.list_modURL = modUrlList;//["play0ad.com", "", ""];
 	obj.list_modDescription = modDescriptionList;//["0 A.D. nuff said.", "A Chinese civ addon for 0 A.D.", "something"];
 	obj.list_modTotalSize = modTotalSizeList;//["123", "1", "0"];
 	obj.list_modDependencies = modDependenciesList;//["modFolderName OR modLabel OR modDownloadLink?", "modFolderName2", "modFolderName3"];
@@ -332,15 +306,12 @@ function getPositionByValue(listObjectName, value)
 	if (!listObjectName || !value)
 		return -1;
 
-	var pos = -1;
 	var gui_obj = Engine.GetGUIObjectByName(listObjectName);
 	var gui_list = gui_obj.list;
 	var selected_object = gui_list[gui_obj.selected];
-	while (++pos < gui_list.length)
-	{
+	for (var pos = 0; pos < gui_list.length; pos++)
 		if (gui_list[pos] == selected_object)
 			return pos;
-	}
 
 	return -1;
 }
@@ -351,16 +322,15 @@ function getPositionByValue(listObjectName, value)
  */
 function addSelectedToList(sourceListObjectName, sourceJson, targetListObjectName, targetJson, removeFromSourceJson = false)
 {
-	var gui_obj = Engine.GetGUIObjectByName(sourceListObjectName);
-	var list = gui_obj.list;
-	var pos = gui_obj.selected;
+	var obj = Engine.GetGUIObjectByName(sourceListObjectName);
+	var list = obj.list;
+	var pos = obj.selected;
 	var name = list[pos];
 	warn('name: ' + name + ' at pos: ' + pos + ' from list: ' + list);
 
 	// find the mod data entry to add: 
-	// TODO for ... of?
 	var json_key = null;
-	for each (json_key in Object.keys(sourceJson))
+	for (json_key of Object.keys(sourceJson))
 		if (json_key == name)
 		{
 			// e.g. add the available mod data entry to the enabled list (overwriting the old data associated with this key):
@@ -369,6 +339,9 @@ function addSelectedToList(sourceListObjectName, sourceJson, targetListObjectNam
 				delete sourceJson[json_key];
 			break;
 		}
+
+	// TODO adjust the index, but if there are no more elements left set it to -1 (no selection)
+	obj.selected = -1;
 
 	// maintain the ordering of the enabledMods:
 	g_modsEnabledJSON_keys_ordered.push(json_key);
@@ -385,10 +358,7 @@ function removeSelectedFromList(listObjectName, jsonToRemoveFrom, jsonToRemoveFr
 	// single selected object:
 	var obj = Engine.GetGUIObjectByName(listObjectName);
 	var pos = obj.selected;
-	// The GUI way:
-//	removeItem(listObjectName, pos);
 
-	// The recreation way:
 	var name = obj.list[pos];
 	warn('name: ' + name + ' at pos: ' + pos + ' from list: ' + obj.list);
 
@@ -411,24 +381,8 @@ function removeSelectedFromList(listObjectName, jsonToRemoveFrom, jsonToRemoveFr
 		}
 	}
 
-	// multiple selected objects: TODO test if useful and works
-	if (g_selectedObjects != null && g_selectedObjects.length != 0)
-	{
-		var areAllSelectedObjectsRemoved = true;
-		for each (var selected_object in g_selectedObjects)
-		{
-			// figure out list position to be able to use utility functions.
-			var pos = getPositionByValue(listObjectName, selected_object);
-			if (!pos || pos == -1)
-			{
-				areAllSelectedObjectsRemoved = false;
-				continue;
-			}
-
-			removeItem(listObjectName, pos);
-		}
-
-	}
+	// TODO why do we adjust this in two places?
+	obj.selected = -1;
 
 	// recreate the GUI list
 	generateModsList(listObjectName, jsonToRemoveFrom);
@@ -438,8 +392,7 @@ function removeSelectedFromList(listObjectName, jsonToRemoveFrom, jsonToRemoveFr
 
 function modsAvailableListSelectionChanged(xmlNode)
 {
-	// TODO for multiple selections.
-	// modsAvailableContext.selected_objects.push(xmlNode);
+	;
 }
 
 function resetFilters()
@@ -453,16 +406,11 @@ function resetFilters()
 	generateModsLists();
 }
 
-
-
-
 function applyFilters()
 {
 	generateModsLists();
 	//updateModSelection();
 }
-
-
 
 /**
  * Filter a mod based on the status of the filters.
@@ -495,7 +443,7 @@ function filterMod(mod)
 		var t = genericFilter.caption;
 		if (mod.label.indexOf(t) != -1
 		    || mod.type.indexOf(t) != -1
-		    || mod.site_url.indexOf(t) != -1
+		    || mod.url.indexOf(t) != -1
 		    || mod.total_size.indexOf(t) != -1
 		    || mod.description.indexOf(t) != -1
 		    || (/*typeof mod.dependencies == 'array' && WORKS FOR BOTH ARRAY AND STRING*/ mod.dependencies.indexOf(t) != -1)
