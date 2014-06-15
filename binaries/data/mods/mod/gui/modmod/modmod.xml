@@ -1,43 +1,248 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!--
+==========================================
+- Modification Modificator (ModMod) Window  -
+==========================================
+-->
 <objects>
+	<script file="gui/common/functions_global_object.js"/>
+	<script file="gui/common/functions_utility.js"/>
+	<script file="gui/common/functions_utility_list.js"/>
+    <script file="gui/common/music.js"/>
+
 	<script file="gui/modmod/modmod.js"/>
 
-	<!-- Add a translucent black background to fade out the menu page -->
+
+
+	<!-- Add a translucent black background to fade out the menu page. (sprite is for images, style attribute for general styling.) -->
 	<object type="image" sprite="ModernFade"/>
 
-	<!-- Settings Window -->
-	<object name="modmod" type="image" style="ModernWindow" size="0 0 100% 100%">
+
+
+    <!-- Content Wrapper -->
+    <object name="modmod" type="image" style="ModernWindow" size="0 0 100% 100%">
+
 		<!-- Page Title -->
 		<object style="ModernLabelText" type="text" size="50%-128 0%+4 50%+128 36">
 			<translatableAttribute id="caption">Modifications</translatableAttribute>
 		</object>
 
-		<object name="AvailableMods" size="20 40 100%-20 50%-4">
+
+        <!-- reset -->
+        <object name="reset" size="20 40 204 68" type="button" style="ModernButtonRed">
+			<translatableAttribute id="caption">Reset Filters</translatableAttribute>
+			<action on="Press">resetFilters();</action>
+        </object>
+
+        <!-- Sort by -->
+        <object name="sortingWrapper" size="20% 40 80% 60">
+            <object type="text" size="0 0 75 100%" text_align="left" textcolor="white">
+                Sort by:
+            </object>
+    	    <object name="sortBy"
+              	    type="dropdown"
+       			    style="ModernDropDown"
+		   	        size="75 0 75%-25 100%"
+	            	font="sans-bold-13">
+            	<action on="SelectionChange">applyFilters();</action>
+            </object>
+            <!-- Checkboxes -->
+            <object type="text" size="75% 0 100% 100%" text_align="left" textcolor="white">
+                Descending.
+            </object>
+	    	<object name="isOrderDescending"
+		    		type="checkbox"
+	    	    	checked="false"
+        		    style="ModernTickBox"
+        			size="75%-20 0 75% 100%"
+	        		font="serif-bold-13">
+        		<action on="Press">applyFilters();</action>
+    	    </object>
+        </object>
+
+
+
+        <!-- Filter Panel -->
+        <object name="filterPanel" size="20 65 100%-20 115">
+            <object type="text" size="0 100%-24 5% 100%" text_align="left" textcolor="120 120 220">
+                Filter: 
+            </object>
+     	    <object name="modGenericFilter" type="input" 
+            		style="ModernInput" font="serif-13" 
+	        		size="5% 100%-24 20% 100%">
+    		    <action on="Press">applyFilters();</action>
+            </object>
+    
+	        <object name="modTypeFilter"
+            	    type="dropdown"
+    				style="ModernDropDown"
+		    	    size="20%+5 100%-24 35%-5 100%"
+	    	    	font="sans-bold-13">
+        		<action on="SelectionChange">applyFilters();</action>
+            </object>
+
+            <!-- switch between official|community|3rd party mods
+            <object name="modListKindFilter"
+        			type="dropdown"
+        			style="ModernDropDown"
+        			size="52%-5 0 68%-10 100%"
+    	    		font="sans-bold-13">
+        		<action on="SelectionChange">applyFilters();</action>
+            </object>
+            -->
+    
+            <!-- Checkboxes -->
+            <object type="text" size="22 0% 100% 24" text_align="left" textcolor="white">
+                Show experimental/unchecked/unofficial mods (only official mods allowed for Multiplayer? Or mp games set which level of mods they want to allow?).
+            </object>
+	    	<object name="showExperimentalModsFilter"
+		    		type="checkbox"
+	    	    	checked="true"
+        		    style="ModernTickBox"
+        			size="0 0 20 24"
+	        		font="serif-bold-13">
+        		<action on="Press">applyFilters();</action>
+    	    </object>
+    
+            <!--
+        	<object type="text" size="22 0 75% 100%" text_align="left" textcolor="white">
+                Show mods available for download.
+            </object>
+	    	<object name="showLocalOnlyFilter"
+    	        	type="checkbox"
+	        		checked="true"
+			        style="ModernTickBox"
+    			   	size="0 100%-50 20 100%-30"
+	    			font="serif-bold-13">
+    		    <action on="Press">applyFilters();</action>
+            </object>
+            -->
+
+        </object>
+
+
+
+
+        <!-- Enabled Mods Wrapper -->
+        <object name="modsEnabled" size="20 75% 100%-20 100%-50">
+			<object style="ModernLabelText" type="text" size="0 5 100% 25">
+				<translatableAttribute id="caption">Enabled Mods</translatableAttribute>
+            </object>
+
+			<!-- LIST (enabled mods are listed here in realtime, mods can be moved up and down in the list oreder) -->
+			<object name="modsEnabledList" style="ModernList" type="olist" size="0 25 100% 100%" font="sans-stroke-13">
+                <action on="SelectionChange">modsEnabledListSelectionChanged();</action>
+
+                <!-- List headers -->
+                <!--
+				<def id="modPreview" color="0 60 0" width="25%">
+					<translatableAttribute id="heading">Preview</translatableAttribute>
+                </def>
+                -->
+				<def id="name" color="100 100 200" width="10%">
+					<translatableAttribute id="heading">Folder Name</translatableAttribute>
+				</def>
+				<def id="modLabel" color="0 60 0" width="15%">
+					<translatableAttribute id="heading">Mod Label</translatableAttribute>
+				</def>
+				<def id="modType" color="0 128 128" width="10%">
+					<translatableAttribute id="heading">Mod Type</translatableAttribute>
+                </def>
+				<!-- TODO: Clarify if really needed as the website could also go into the mod's description. -->
+				<def id="modSiteURL" color="128 128 128" width="15%">
+					<translatableAttribute id="heading">Website</translatableAttribute>
+				</def>
+				<def id="modDescription" color="128 128 128" width="15%">
+                    <translatableAttribute id="heading">Description</translatableAttribute>
+				</def>
+				<def id="modTotalSize" color="128 128 128" width="15%">
+					<translatableAttribute id="heading" context="folder or filesize">Total Size / KB</translatableAttribute>
+				</def>
+				<def id="modDependencies" color="128 128 128" width="15%">
+                    <translatableAttribute id="heading">Dependencies</translatableAttribute>
+                </def>
+
+			</object>
+
+	    	<object type="button" style="ModernButtonRed" size="95% 23 100% 40%+12">
+    			<translatableAttribute id="caption">Up</translatableAttribute>
+			    <action on="Press">moveCurrItem(this.parent.name, -1, "List");</action>
+            </object>
+	    	<object type="button" style="ModernButtonRed" size="95% 40%+12 100% 60%+10">
+    			<translatableAttribute id="caption">X</translatableAttribute>
+                <action on="Press">removeSelectedFromList('modsEnabledList', g_modsEnabledJSON, g_modsEnabledJSON_keys_ordered, g_modsAvailableJSON, 'modsAvailableList');</action>
+            </object>
+	    	<object type="button" style="ModernButtonRed" size="95% 60%+10 100% 100%+2">
+    			<translatableAttribute id="caption">Down</translatableAttribute>
+			    <action on="Press">moveCurrItem(this.parent.name, 1, "List");</action>
+            </object>
+
+
+        </object>
+
+
+
+
+
+
+        <!-- All Mods Wrapper -->
+		<object name="modsAvailable" size="20 100 100%-20 75%-4">
 			<object style="ModernLabelText" type="text" size="0 5 100% 25">
 				<translatableAttribute id="caption">Available Mods</translatableAttribute>
 			</object>
 
-			<!-- List Headers: -->
-			<object name="gamesBox" style="ModernList" type="olist" size="0 25 100% 50%" font="sans-stroke-13">
-				<action on="SelectionChange">modSelectionChanged();</action>
-				<def id="name" color="0 60 0" width="25%">
-					<translatableAttribute id="heading">Mod Name</translatableAttribute>
+			<!-- LIST -->
+			<object name="modsAvailableList" style="ModernList" type="olist" size="0 25 95% 100%" font="sans-stroke-13">
+                <action on="SelectionChange">modsAvailableListSelectionChanged();</action>
+
+                <!-- List headers -->
+                <!--
+				<def id="modPreview" color="0 60 0" width="25%">
+					<translatableAttribute id="heading">Preview</translatableAttribute>
+                </def>
+                -->
+                <def id="name" color="100 100 200" width="10%">
+					<translatableAttribute id="heading">Folder Name</translatableAttribute>
 				</def>
+				<def id="modLabel" color="0 60 0" width="15%">
+					<translatableAttribute id="heading">Mod Label</translatableAttribute>
+				</def>
+				<def id="modType" color="0 128 128" width="10%">
+					<translatableAttribute id="heading">Mod Type</translatableAttribute>
+                </def>
 				<!-- TODO: Clarify if really needed as the website could also go into the mod's description. -->
-				<def id="modSite" color="128 128 128" width="20%">
+				<def id="modSiteURL" color="128 128 128" width="15%">
 					<translatableAttribute id="heading">Website</translatableAttribute>
 				</def>
-				<def id="modDescription" color="128 128 128" width="16%">
-					<translatableAttribute id="heading" context="map">Description</translatableAttribute>
+				<def id="modDescription" color="128 128 128" width="15%">
+                    <translatableAttribute id="heading">Description</translatableAttribute>
 				</def>
-				<def id="modTotalSize" color="128 128 128" width="16%">
-					<translatableAttribute id="heading" context="map">Total Size / KB</translatableAttribute>
+				<def id="modTotalSize" color="128 128 128" width="15%">
+					<translatableAttribute id="heading" context="folder or filesize">Total Size / KB</translatableAttribute>
 				</def>
+				<def id="modDependencies" color="128 128 128" width="15%">
+                    <translatableAttribute id="heading">Dependencies</translatableAttribute>
+                </def>
+
 			</object>
 
-		</object>
+	    	<object type="button" style="ModernButtonRed" size="95% 23 100% 90%+12">
+    			<translatableAttribute id="caption">Enable</translatableAttribute>
+                <action on="Press">
+                    addSelectedToList('modsAvailableList', g_modsAvailableJSON, 'modsEnabledList', g_modsEnabledJSON, true);
+                </action>
+            </object>
+	    	<object type="button" style="ModernButtonRed" size="95% 90%+12 100% 100%+2">
+    			<translatableAttribute id="caption">X</translatableAttribute>
+                <action on="Press">deleteSelectedMod('modsAvailableList');</action>
+            </object>
+        </object>
 
+
+
+
+        <!-- BUTTONS -->
 		<object type="button" style="ModernButtonRed" size="16 100%-44 200 100%-16">
 			<translatableAttribute id="caption">Exit</translatableAttribute>
 			<action on="Press">Engine.Exit()</action>
@@ -50,7 +255,7 @@
 
 		<object type="button" style="ModernButtonRed" size="100%-200 100%-44 100%-16 100%-16">
 			<translatableAttribute id="caption">Save Configuration</translatableAttribute>
-			<action on="Press">closePage();</action>
+			<action on="Press">storeLabelsOfEnabledModsInConfig(); closePage();</action>
 		</object>
 	</object>
 </objects>
