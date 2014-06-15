@@ -7,7 +7,6 @@
 	// TODO Check savegame code to display nice mod names (after we have the logic for that)
 
 	// TODO Move this function out of the savegame code
-<<<<<<< HEAD
 	//warn(uneval(Engine.GetEngineInfo()));
     
     // TODO Add functionality to allow multiple selected GUI objects?
@@ -624,3 +623,75 @@ function closePage()
 	Engine.SwitchGuiPage("page_pregame.xml", {});
 //	Engine.RestartEngine();
 }
+
+
+/**
+ Moves up or down an item in the list by the specified amount @p moveBy. (working but not reordering sublists as it can't know which sublists/headers have been defined. Solve this using by giving a @p guiUpdate_callback function.)
+ @param objectName The list object's name as specified in the XML.
+ @param moveBy  If positive then move up by this number.
+                If negative then move down by this number.
+                Default is to move by +1, i.e. move up by one.
+ */
+function moveCurrItem(objectName, moveBy = 1, objectNameAppend = '', guiUpdate_callback = null)
+{
+    objectName = objectName + "" + objectNameAppend;
+    warn('moveCurrItem: ' + objectName);
+    // reuse the check for null and if something is selected.
+    if (getCurrItemValue(objectName) != "")
+    {
+        var selectedIndex = Engine.GetGUIObjectByName(objectName).selected;
+        var listItemCount = getNumItems(objectName);
+        warn('selectedIndex: ' + selectedIndex 
+                + ' to be moved by ' + moveBy);
+
+        // Move up but already First element?
+        if (moveBy < 0 && selectedIndex < 1)
+        {
+            // => Nothing to do.
+            warn('Already first element.');
+        }
+        // Move down but already Last element?
+        else if (moveBy > 0 && selectedIndex == listItemCount - 1)
+        {
+            // => Nothing to do.
+            warn('Already last element.');
+        }
+        else
+        {
+            // => Move.
+            var source_index = selectedIndex;
+            var target_index = source_index + moveBy;
+            // Is target object index valid?
+            if (target_index > -1 && target_index < listItemCount)
+            {
+                // => incremental move to destination position. shift all passed elements.
+                var list = Engine.GetGUIObjectByName(objectName).list;
+                while (selectedIndex != target_index)
+                {
+                    var swap_index1 = selectedIndex;
+                    // use the sign for the correct direction, but normalize to 1
+                    // as we must swap the object directly preceding or succeding.
+                    // Otherwise the order of the objects is not upheld.
+                    var swap_index2 = selectedIndex + moveBy / Math.abs(moveBy);
+                    //swap(objectName, swap_index1, swap_index2);
+                    var tmp = list[swap_index1];
+                    list[swap_index1] = list[swap_index2];
+                    list[swap_index2] = tmp;
+
+                    selectedIndex = swap_index2;
+                }
+                // Selected object reached the new position. Update the enginescoped list:
+                Engine.GetGUIObjectByName(objectName).list = list;
+                Engine.GetGUIObjectByName(objectName).selected = selectedIndex;
+
+                if (guiUpdate_callback)
+                {
+                    // update the GUI sublists to the main list.
+                    guiUpdate_callback(objectName);
+                }
+            }
+                
+        }
+    }
+}
+
