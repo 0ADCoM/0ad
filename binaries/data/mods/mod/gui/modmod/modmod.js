@@ -71,50 +71,13 @@ var g_selectedObjects = []; // GUI objects/xml nodes.
  */
 function init()
 {
-	// TODO Switch to actual mod data
-	//g_modsAvailableJSON = Engine.GetModInfoJSON();
-	g_mods = { 
-		"0ad": {
-			name: "0ad",
-			label: "0 A.D.",
-			type: "Mixed/ModPack/Game",
-			url: "http://play0ad.com/",
-			description: "Main Game + Base for most other mods (It's very likely you need to enable this!).",
-			total_size: "100MB",
-			dependencies: [],
-			is_experimental: false
-		},
-		"eastern_civilizations": {
-			name: "rote",
-			label: "Rise of the East",
-			type: "Mixed/ModPack/Addon",
-			url: "http://play0ad.com/",
-			description: "Adds all Eastern civilizations over the course of history to 0AD.",
-			total_size: "300MB",
-			dependencies: [ "0ad" ],
-			is_experimental: false
-		},
-		"hundred_years_war": {
-			name: "100yw",
-			label: "Hundred Years War",
-			type: "Content.Map Content.Campaign",
-			url: "http://forum.wildfiregames.com/",
-			description: ".",
-			total_size: "900KB",
-			dependencies: [ "0ad", "millennium" ], //first item loaded/mounted first
-			is_experimental: true
-		}
-		//TODO Distinguish between official/checked + community + 3rd party/unchecked mods. (allow to set this level of security for multiplayer games on a per game level. Only allow if all the host's mods are available.)
-	};
+	g_mods = Engine.GetAvailableMods();
 
-
-	// Enabled mods GUI list is empty when initializing and if no mod configuration has been saved to the config file before.
 	g_modsEnabled = getExistingModsFromConfig();
 	g_modsAvailable = Object.keys(g_mods).filter(function(i) { return g_modsEnabled.indexOf(i) === -1; });
-	generateModsLists();
 
-	//warn(uneval(Engine.GetEngineInfo()));
-	//Engine.SetMods(["public", "rote"]);
+	Engine.GetGUIObjectByName("showExperimentalModsFilter").checked = false;
+	generateModsLists();
 }
 
 /**
@@ -126,12 +89,21 @@ function generateModsLists()
 	generateModsList('modsEnabledList', g_modsEnabled);
 }
 
-function storeLabelsOfEnabledModsInConfig()
+function saveMods()
 {
-	warn("Save enabled mods: '"+g_modsEnabled.join(" ")+"'");
+	// TODO make sure that "mod" is prepended to that
+	warn("Save enabled mods: '"+"mod "+g_modsEnabled.join(" ")+"'");
 
 	//warn('Saving enabled mods to config: ' + modsEnabledLabelsAsString);
 	//Engine.ConfigDB_CreateValue("user", "enabledMods", modsEnabledLabelsAsString);
+}
+
+function startMods()
+{
+	// TODO what to do about user mod? (make SetMods() handle this?)
+
+	Engine.SetMods(["mod"].concat(g_modsEnabled));
+	Engine.RestartEngine();
 }
 
 function getExistingModsFromConfig()
@@ -163,8 +135,7 @@ function generateModsList(listObjectName, mods)
 	var isOrderDescending = Engine.GetGUIObjectByName("isOrderDescending");
 
 	// sort alphanumerically:
-	if (!GUIList_sortBy || GUIList_sortBy.selected == 0
-	    || GUIList_sortBy.selected == -1)
+	if (!GUIList_sortBy || GUIList_sortBy.selected <= 0)
 	{
 		mods.sort(function(akey, bkey)
 		{
@@ -172,8 +143,7 @@ function generateModsList(listObjectName, mods)
 			var b = g_mods[bkey];
 			return ((a.label.toLowerCase() > b.label.toLowerCase()) ? 1 
 				: (b.label.toLowerCase() > a.label.toLowerCase()) ? -1 
-				: 0
-			); 
+				: 0); 
 		});
 	}
 	// sort by mod total size:
@@ -324,18 +294,16 @@ function disableMod()
 function resetFilters()
 {
 	// Reset states of gui objects.
-	Engine.GetGUIObjectByName("modTypeFilter").selected = 0;
+	Engine.GetGUIObjectByName("modTypeFilter").selected = -1;
 	Engine.GetGUIObjectByName("showExperimentalModsFilter").checked = false;
 	Engine.GetGUIObjectByName("modGenericFilter").caption = "";
 
-	// Update the list of mods. 
-	generateModsLists();
+	// NOTE: Calling generateModsLists() is not needed as the selection changes and that calls applyFilters()
 }
 
 function applyFilters()
 {
 	generateModsLists();
-	//updateModSelection();
 }
 
 /**

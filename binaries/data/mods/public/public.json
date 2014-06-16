@@ -1,3 +1,9 @@
 {
-	"test": "working"
+	"name": "0ad",
+	"label": "0 A.D. Empires Ascendant",
+	"url": "play0ad.com",
+	"description": "A free, open-source, historical RTS game.",
+	"dependencies": [],
+	"total_size": 0,
+	"type": "game"
 }

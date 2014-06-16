@@ -6,20 +6,9 @@
 ==========================================
 -->
 <objects>
-	<script file="gui/common/functions_global_object.js"/>
-	<script file="gui/common/functions_utility.js"/>
-	<script file="gui/common/functions_utility_list.js"/>
-
 	<script file="gui/modmod/modmod.js"/>
 
-	<!-- Add a translucent black background to fade out the menu page. (sprite is for images, style attribute for general styling.) -->
-	<object type="image" sprite="ModernFade"/>
-
-
-
-	<!-- Content Wrapper -->
 	<object name="modmod" type="image" style="ModernWindow" size="0 0 100% 100%">
-
 		<!-- Page Title -->
 		<object style="ModernLabelText" type="text" size="50%-128 0%+4 50%+128 36">
 			<translatableAttribute id="caption">Modifications</translatableAttribute>
@@ -188,21 +177,23 @@
 
 		<!-- BUTTONS -->
 		<object type="button" style="ModernButtonRed" size="16 100%-44 200 100%-16">
-			<translatableAttribute id="caption">Exit</translatableAttribute>
+			<translatableAttribute id="caption">Quit</translatableAttribute>
 			<action on="Press">Engine.Exit()</action>
 		</object>
 
-		<object type="button" style="ModernButtonRed" size="100%-388 100%-44 100%-204 100%-16">
+		<object type="button" style="ModernButtonRed" size="100%-576 100%-44 100%-392 100%-16">
 			<translatableAttribute id="caption">Cancel</translatableAttribute>
 			<action on="Press">closePage();</action>
 		</object>
 
-		<object type="button" style="ModernButtonRed" size="100%-200 100%-44 100%-16 100%-16">
+		<object type="button" style="ModernButtonRed" size="100%-388 100%-44 100%-204 100%-16">
 			<translatableAttribute id="caption">Save Configuration</translatableAttribute>
-			<action on="Press">
-				storeLabelsOfEnabledModsInConfig();
-				closePage();
-			</action>
+			<action on="Press">saveMods();</action>
+		</object>
+
+		<object type="button" style="ModernButtonRed" size="100%-200 100%-44 100%-16 100%-16">
+			<translatableAttribute id="caption">Start Mods</translatableAttribute>
+			<action on="Press">startMods();</action>
 		</object>
 	</object>
 </objects>
