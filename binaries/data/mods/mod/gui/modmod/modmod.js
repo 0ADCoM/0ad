@@ -261,11 +261,6 @@ function generateModsList(listObjectName, mods)
 	modTypeFilter.list = g_modTypes;
 }
 
-function modsEnabledListSelectionChanged(obj)
-{
-	;
-}
-
 function arePreconditionsMet()
 {
 	if (g_selectedObjects.isEmpty())
@@ -291,7 +286,7 @@ function getPositionByValue(listObjectName, value)
 	return -1;
 }
 
-function addMod()
+function enableMod()
 {
 	var obj = Engine.GetGUIObjectByName("modsAvailableList");
 	var pos = obj.selected;
@@ -309,7 +304,7 @@ function addMod()
 	generateModsLists();
 }
 
-function removeMod()
+function disableMod()
 {
 	var obj = Engine.GetGUIObjectByName("modsEnabledList");
 	var pos = obj.selected;
@@ -324,11 +319,6 @@ function removeMod()
 	obj.selected = -1;
 
 	generateModsLists();
-}
-
-function modsAvailableListSelectionChanged(xmlNode)
-{
-	;
 }
 
 function resetFilters()

@@ -106,8 +106,6 @@
 
 			<!-- LIST -->
 			<object name="modsAvailableList" style="ModernList" type="olist" size="0 25 95% 100%" font="sans-stroke-13">
-				<action on="SelectionChange">modsAvailableListSelectionChanged();</action>
-
 				<!-- List headers -->
 				<def id="name" color="100 100 200" width="10%">
 					<translatableAttribute id="heading">Folder Name</translatableAttribute>
@@ -135,9 +133,7 @@
 
 			<object type="button" style="ModernButtonRed" size="95% 23 100% 90%+12">
 				<translatableAttribute id="caption">Enable</translatableAttribute>
-				<action on="Press">
-					addMod();
-				</action>
+				<action on="Press">enableMod();</action>
 			</object>
 		</object>
 
@@ -150,8 +146,6 @@
 
 			<!-- LIST (enabled mods are listed here in realtime, mods can be moved up and down in the list oreder) -->
 			<object name="modsEnabledList" style="ModernList" type="olist" size="0 25 100% 100%" font="sans-stroke-13">
-				<action on="SelectionChange">modsEnabledListSelectionChanged();</action>
-
 				<!-- List headers -->
 				<def id="name" color="100 100 200" width="10%">
 					<translatableAttribute id="heading">Folder Name</translatableAttribute>
@@ -183,7 +177,7 @@
 			</object>
 			<object type="button" style="ModernButtonRed" size="95% 40%+12 100% 60%+10">
 				<translatableAttribute id="caption">X</translatableAttribute>
-				<action on="Press">removeMod();</action>
+				<action on="Press">disableMod();</action>
 			</object>
 			<object type="button" style="ModernButtonRed" size="95% 60%+10 100% 100%+2">
 				<translatableAttribute id="caption">Down</translatableAttribute>
