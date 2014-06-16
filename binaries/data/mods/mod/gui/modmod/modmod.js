@@ -22,6 +22,7 @@ JSON structure as given by the Engine:
 		is_experimental: true // TODO check if this is useful
 	},
 	"foldername2": {
+		name: "mod2",
 		label: "Mod 2",
 		version: "1.1",
 		type: "content|functionality|mixed/mod-pack",
@@ -34,9 +35,10 @@ JSON structure as given by the Engine:
 }
 */
 
-var g_modsEnabledJSON = {};
-var g_modsAvailableJSON = {};
-var g_modsEnabledJSON_keys_ordered = [];
+
+var g_mods = {}; // Contains all JSONs as explained in the structure above
+var g_modsEnabled = []; // folder names
+var g_modsAvailable = []; // folder names
 
 const SORT_BY_OPTION_ALPHANUMERICAL = 1;
 const SORT_BY_OPTION_TOTAL_SIZE = 2;
@@ -71,8 +73,9 @@ function init()
 {
 	// TODO Switch to actual mod data
 	//g_modsAvailableJSON = Engine.GetModInfoJSON();
-	g_modsAvailableJSON = { 
+	g_mods = { 
 		"0ad": {
+			name: "0ad",
 			label: "0 A.D.",
 			type: "Mixed/ModPack/Game",
 			url: "http://play0ad.com/",
@@ -82,6 +85,7 @@ function init()
 			is_experimental: false
 		},
 		"eastern_civilizations": {
+			name: "rote",
 			label: "Rise of the East",
 			type: "Mixed/ModPack/Addon",
 			url: "http://play0ad.com/",
@@ -91,6 +95,7 @@ function init()
 			is_experimental: false
 		},
 		"hundred_years_war": {
+			name: "100yw",
 			label: "Hundred Years War",
 			type: "Content.Map Content.Campaign",
 			url: "http://forum.wildfiregames.com/",
@@ -104,7 +109,8 @@ function init()
 
 
 	// Enabled mods GUI list is empty when initializing and if no mod configuration has been saved to the config file before.
-	g_modsEnabledJSON = getStillAvailableEnabledModsInJsonUsingTheListOfEnabledModsAsStoredInTheConfigurationFile();
+	g_modsEnabled = getExistingModsFromConfig();
+	g_modsAvailable = Object.keys(g_mods).filter(function(i) { return g_modsEnabled.indexOf(i) === -1; });
 	generateModsLists();
 
 	//warn(uneval(Engine.GetEngineInfo()));
@@ -116,70 +122,54 @@ function init()
  */
 function generateModsLists()
 {
-	// (re-)create GUI list for all mods
-	generateModsList('modsAvailableList', g_modsAvailableJSON);
-	// (re-)create GUI list for enabled mods
-	generateModsList('modsEnabledList', g_modsEnabledJSON);
+	generateModsList('modsAvailableList', g_modsAvailable);
+	generateModsList('modsEnabledList', g_modsEnabled);
 }
 
-function storeLabelsOfEnabledModsInConfig(ordered = true)
+function storeLabelsOfEnabledModsInConfig()
 {
-	var keys = Object.keys(g_modsEnabledJSON);
-	if (ordered && g_modsEnabledJSON_keys_ordered)
-		keys = g_modsEnabledJSON_keys_ordered;
-
-	warn("Save enabled mods: '"+keys.join(" ")+"'");
+	warn("Save enabled mods: '"+g_modsEnabled.join(" ")+"'");
 
 	//warn('Saving enabled mods to config: ' + modsEnabledLabelsAsString);
 	//Engine.ConfigDB_CreateValue("user", "enabledMods", modsEnabledLabelsAsString);
 }
 
-function getStillAvailableEnabledModsInJsonUsingTheListOfEnabledModsAsStoredInTheConfigurationFile()
+function getExistingModsFromConfig()
 {
-	var enabledModsAsPerConfigThatAreStillAvailable = {};
+	var existingMods = [];
 
-	// check each as per config enabled mod if the mod is still available:
-	var enabledModsAsPerConfig = Engine.ConfigDB_GetValue("user", "enabledMods");
-	for (var enabledModAsPerConfigLabel of enabledModsAsPerConfig)
-	{
-		// Is mod still available?
-		for (var availableMod_key of Object.keys(g_modsAvailableJSON))
-		{
-			var availableMod = g_modsAvailableJSON[availableMod_key];
-			// check for the label as the folder name might have been renamed as those have to be unique (then we could potentially fail to find the folder name).
-			// Is the per config enabled mod equal to the currently examined mod of all the available mods list? TODO check for similarity (as there might be more mods for the same purpose and both would match the requirements).
-			if (availableMod.label == enabledModAsPerConfigLabel)
-			{
-				enabledModsAsPerConfigThatAreStillAvailable[availableMod_key] = availableMod;
-				break; //the inner for loop
-			}
-		}
-	}
-	// Only the still available mods remain.
-	return enabledModsAsPerConfigThatAreStillAvailable;
+	var mods = [];
+	var cfgMods = "0ad rote"; // TODO get from config // mod folders!
+	if (cfgMods.length)
+		mods = cfgMods.split(" ");
+
+	mods.forEach(function(mod) { 
+		if (mod in g_mods)
+			existingMods.push(mod);
+	});
+
+	return existingMods;
 }
 
 /**
  * (Re-)Generate List of all mods.
  * @param listObjectName The GUI object's name (e.g. "modsEnabledList", "modsAvailableList")
  */
-function generateModsList(listObjectName, jsonToReadModsFrom)
+function generateModsList(listObjectName, mods)
 {
-	warn('generating mod list: ' + listObjectName  + ' json: ' +  jsonToReadModsFrom);
+	warn('generating mod list: ' + listObjectName  + ' mods: ' +  mods);
 	// 0) SORT THE MODS / LIST ITEMS
 	var GUIList_sortBy = Engine.GetGUIObjectByName("sortBy"); 
 	var isOrderDescending = Engine.GetGUIObjectByName("isOrderDescending");
 
 	// sort alphanumerically:
-	var jsonToReadModsFrom_keys_sorted = Object.keys(jsonToReadModsFrom);
 	if (!GUIList_sortBy || GUIList_sortBy.selected == 0
 	    || GUIList_sortBy.selected == -1)
 	{
-
-		jsonToReadModsFrom_keys_sorted.sort(function(akey, bkey)
+		mods.sort(function(akey, bkey)
 		{
-			var a = jsonToReadModsFrom[akey];
-			var b = jsonToReadModsFrom[bkey];
+			var a = g_mods[akey];
+			var b = g_mods[bkey];
 			return ((a.label.toLowerCase() > b.label.toLowerCase()) ? 1 
 				: (b.label.toLowerCase() > a.label.toLowerCase()) ? -1 
 				: 0
@@ -189,10 +179,10 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 	// sort by mod total size:
 	else if (GUIList_sortBy.selected == 1)
 	{
-		jsonToReadModsFrom_keys_sorted.sort(function(akey, bkey)
+		mods.sort(function(akey, bkey)
 		{
-			var a = jsonToReadModsFrom[akey];
-			var b = jsonToReadModsFrom[bkey];
+			var a = g_mods[akey];
+			var b = g_mods[bkey];
 			if (isOrderDescending && isOrderDescending.checked)
 				return ((a.total_size > b.total_size) ? 1 
 					: (b.total_size > a.total_size) ? -1 
@@ -211,81 +201,66 @@ function generateModsList(listObjectName, jsonToReadModsFrom)
 	var modUrlList = [];
 	var modTotalSizeList = [];
 	var modDependenciesList = [];
-	for (var key of jsonToReadModsFrom_keys_sorted)
+	mods.forEach(function(mod)
 	{
-		//warn('key: ' + key);
+		if (filterMod(g_mods[mod])) // TODO does this want a JSON?
+			return;
+//		if (g_modTypes.indexOf(jsonToReadModsFrom[key].type) !== -1)
+//			g_modTypes.push(jsonToReadModsFrom[key].type); 
 
-		if (filterMod(jsonToReadModsFrom[key])) 
-			continue;
-		if (g_modTypes.indexOf(jsonToReadModsFrom[key].type) !== -1)
-			g_modTypes.push(jsonToReadModsFrom[key].type); 
-
-		var modFolderName = key;
-		modFolderNameList.push(modFolderName);
+		modFolderNameList.push(mod);
 
 		var modLabel = "Label";
-		if (jsonToReadModsFrom[key].label)
-			modLabel = jsonToReadModsFrom[key].label;
-		if (jsonToReadModsFrom[key].is_experimental)
+		if (g_mods[mod].label)
+			modLabel = g_mods[mod].label;
+		if (g_mods[mod].is_experimental)
 			modLabel = '[color="orange"]' + modLabel + '[/color]';
 		modLabelList.push(modLabel);
 
 		var modDescription = "Description";
-		if (jsonToReadModsFrom[key].description)
-			modDescription = jsonToReadModsFrom[key].description;
+		if (g_mods[mod].description)
+			modDescription = g_mods[mod].description;
 		modDescriptionList.push(modDescription);
 
 		var modType = "Mixed/Mod-Pack";
-		if (jsonToReadModsFrom[key].type)
-			modType = jsonToReadModsFrom[key].type;
+		if (g_mods[mod].type)
+			modType = g_mods[mod].type;
 		modTypeList.push(modType);
 
 		var modURL = "http://wildfiregames.com/";
-		if (jsonToReadModsFrom[key].url)
-			modURL = jsonToReadModsFrom[key].url;
+		if (g_mods[mod].url)
+			modURL = g_mods[mod].url;
 		modUrlList.push(modURL);
 
 		var modTotalSize = "0KB";
-		if (jsonToReadModsFrom[key].total_size)
-			modTotalSize = jsonToReadModsFrom[key].total_size;
+		if (g_mods[mod].total_size)
+			modTotalSize = g_mods[mod].total_size;
 		modTotalSizeList.push(modTotalSize);
 
+		// TODO Just the mod.name (shortname property which should be unique (in the sense that different occurences of it must be the same mod (maybe different version)))
 		var modDependencies = [ 'neverEverChanging-modInfoFile-DownloadLink', 'another-modInfoFile-DownloadLink', 'OR mod(Folder)Name', '' ];
-		if (jsonToReadModsFrom[key].dependencies)
-			modDependencies = jsonToReadModsFrom[key].dependencies.join(" ");
+		if (g_mods[mod].dependencies)
+			modDependencies = g_mods[mod].dependencies.join(" ");
 		modDependenciesList.push(modDependencies);
-	}
+	});
 
 	// 2) POPULATE GUI LISTS WITH THE SORTED AND FILTERED DATA.
 	var obj  = Engine.GetGUIObjectByName(listObjectName);
 
 	obj.list_name = modFolderNameList;
-	obj.list_modLabel = modLabelList;//["0 A.D.", "Rise of the East", "bla"];
-	obj.list_modType = modTypeList;//["Mixed/ModPack/Game", "Content.Map", "Content.Campaign", "Content.Civilization", "Content.Textures", "Content.3DModel", "Functionality"];
-	obj.list_modURL = modUrlList;//["play0ad.com", "", ""];
-	obj.list_modDescription = modDescriptionList;//["0 A.D. nuff said.", "A Chinese civ addon for 0 A.D.", "something"];
-	obj.list_modTotalSize = modTotalSizeList;//["123", "1", "0"];
-	obj.list_modDependencies = modDependenciesList;//["modFolderName OR modLabel OR modDownloadLink?", "modFolderName2", "modFolderName3"];
+	obj.list_modLabel = modLabelList;
+	obj.list_modType = modTypeList;
+	obj.list_modURL = modUrlList;
+	obj.list_modDescription = modDescriptionList;
+	obj.list_modTotalSize = modTotalSizeList;
+	obj.list_modDependencies = modDependenciesList;
 
-	obj.list = modFolderNameList;//["public", "rote", "bla"]; // Use the mod folder name here
-	//obj.list_data = /*index or additional data*/;
+	obj.list = modFolderNameList;
 
 	var modTypeFilter = Engine.GetGUIObjectByName("modTypeFilter");
 	modTypeFilter.list = g_modTypes;
 }
 
-/*
- Note:  An object's name is somewhat unique.
- Note:  Currently the engine does not return
-        all objects matching a certain regex.
-        Though such a function could be added
-        if desired.
- */
-var modEnabledContext = { 
-	// The selection is operated on, e.g.
-	// removed from the list et alia. (see buttons' action)
-	selected_list_row_objects: []
-};
 function modsEnabledListSelectionChanged(obj)
 {
 	;
@@ -316,78 +291,39 @@ function getPositionByValue(listObjectName, value)
 	return -1;
 }
 
-/**
-   To enable a mod execute as follows:
-   addSelectedToList('modsAvailableList', g_modsAvailable, 'modsEnabledList', g_modsEnabled);
- */
-function addSelectedToList(sourceListObjectName, sourceJson, targetListObjectName, targetJson, removeFromSourceJson = false)
+function addMod()
 {
-	var obj = Engine.GetGUIObjectByName(sourceListObjectName);
-	var list = obj.list;
+	var obj = Engine.GetGUIObjectByName("modsAvailableList");
 	var pos = obj.selected;
-	var name = list[pos];
-	warn('name: ' + name + ' at pos: ' + pos + ' from list: ' + list);
 
-	// find the mod data entry to add: 
-	var json_key = null;
-	for (json_key of Object.keys(sourceJson))
-		if (json_key == name)
-		{
-			// e.g. add the available mod data entry to the enabled list (overwriting the old data associated with this key):
-			targetJson[json_key] = sourceJson[json_key];
-			if (removeFromSourceJson)
-				delete sourceJson[json_key];
-			break;
-		}
+	var mod = g_modsAvailable[pos];
+	warn("addMod: "+mod);
+
+	// Move it to the other table
+	// TODO check dependencies somewhere, or just warn about non-satisfied deps
+	g_modsEnabled.push(g_modsAvailable.splice(pos, 1)[0]);
 
 	// TODO adjust the index, but if there are no more elements left set it to -1 (no selection)
 	obj.selected = -1;
 
-	// maintain the ordering of the enabledMods:
-	g_modsEnabledJSON_keys_ordered.push(json_key);
-
-	// update the GUI:
-	generateModsList(targetListObjectName, targetJson);
-	if (removeFromSourceJson)
-		generateModsList(sourceListObjectName, sourceJson);
+	generateModsLists();
 }
 
-function removeSelectedFromList(listObjectName, jsonToRemoveFrom, jsonToRemoveFrom_keys_ordered = null, jsonToAddRemovedTo = null, jsonToAddRemovedToGuiListObjectName = "")
+function removeMod()
 {
-	warn('removeSelectedFromList: listObjectName: ' + listObjectName);
-	// single selected object:
-	var obj = Engine.GetGUIObjectByName(listObjectName);
+	var obj = Engine.GetGUIObjectByName("modsEnabledList");
 	var pos = obj.selected;
 
-	var name = obj.list[pos];
-	warn('name: ' + name + ' at pos: ' + pos + ' from list: ' + obj.list);
+	var mod = g_modsEnabled[pos];
+	warn("removeMod: "+mod);
 
-	// find the mod data entry for removal:
-	var keys = Object.keys(jsonToRemoveFrom);
-	if (jsonToRemoveFrom_keys_ordered)
-		keys = jsonToRemoveFrom_keys_ordered;
-	for (var index = 0; index < keys.length; index++)
-	{
-		var key = keys[index];
-		if (key == name)
-		{
-			warn('deleting mod '+ key +' from list: ' + listObjectName);
-			if (jsonToAddRemovedTo)
-				jsonToAddRemovedTo[key] = jsonToRemoveFrom[key];
-			delete jsonToRemoveFrom[key];
-			if (jsonToRemoveFrom_keys_ordered)
-				jsonToRemoveFrom_keys_ordered.splice(index, 1);
-			break;
-		}
-	}
+	// TODO Add it to g_modsAvailable in a sorted way
+	g_modsAvailable.push(g_modsEnabled.splice(pos, 1)[0]);
 
-	// TODO why do we adjust this in two places?
+	// TODO set selected to something sensible
 	obj.selected = -1;
 
-	// recreate the GUI list
-	generateModsList(listObjectName, jsonToRemoveFrom);
-	if (jsonToAddRemovedTo && jsonToAddRemovedToGuiListObjectName != "")
-		generateModsList(jsonToAddRemovedToGuiListObjectName, jsonToAddRemovedTo);
+	generateModsLists();
 }
 
 function modsAvailableListSelectionChanged(xmlNode)

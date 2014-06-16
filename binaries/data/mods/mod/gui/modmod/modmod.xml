@@ -136,7 +136,7 @@
 			<object type="button" style="ModernButtonRed" size="95% 23 100% 90%+12">
 				<translatableAttribute id="caption">Enable</translatableAttribute>
 				<action on="Press">
-					addSelectedToList('modsAvailableList', g_modsAvailableJSON, 'modsEnabledList', g_modsEnabledJSON, true);
+					addMod();
 				</action>
 			</object>
 		</object>
@@ -183,7 +183,7 @@
 			</object>
 			<object type="button" style="ModernButtonRed" size="95% 40%+12 100% 60%+10">
 				<translatableAttribute id="caption">X</translatableAttribute>
-				<action on="Press">removeSelectedFromList('modsEnabledList', g_modsEnabledJSON, g_modsEnabledJSON_keys_ordered, g_modsAvailableJSON, 'modsAvailableList');</action>
+				<action on="Press">removeMod();</action>
 			</object>
 			<object type="button" style="ModernButtonRed" size="95% 60%+10 100% 100%+2">
 				<translatableAttribute id="caption">Down</translatableAttribute>
@@ -205,7 +205,10 @@
 
 		<object type="button" style="ModernButtonRed" size="100%-200 100%-44 100%-16 100%-16">
 			<translatableAttribute id="caption">Save Configuration</translatableAttribute>
-			<action on="Press">storeLabelsOfEnabledModsInConfig(); closePage();</action>
+			<action on="Press">
+				storeLabelsOfEnabledModsInConfig();
+				closePage();
+			</action>
 		</object>
 	</object>
 </objects>
