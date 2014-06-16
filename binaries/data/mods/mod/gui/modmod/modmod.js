@@ -50,11 +50,6 @@ g_sortByOptions[SORT_BY_OPTION_TOTAL_SIZE] = "Total Size";
 
 var g_modTypes = [];
 
-//======= Optional: Multiple Selected Objects TODO
-var g_selectedObjects = []; // GUI objects/xml nodes.
-//======= Optional -END 
-
-
 /*=======FUNCTIONS============================================*/
 /*
    Procedure: 
@@ -111,7 +106,7 @@ function getExistingModsFromConfig()
 	var existingMods = [];
 
 	var mods = [];
-	var cfgMods = "0ad rote"; // TODO get from config // mod folders!
+	var cfgMods = "public rote"; // TODO get from config // mod folders!
 	if (cfgMods.length)
 		mods = cfgMods.split(" ");
 
@@ -130,40 +125,42 @@ function getExistingModsFromConfig()
 function generateModsList(listObjectName, mods)
 {
 	warn('generating mod list: ' + listObjectName  + ' mods: ' +  mods);
-	// 0) SORT THE MODS / LIST ITEMS
-	var GUIList_sortBy = Engine.GetGUIObjectByName("sortBy"); 
-	var isOrderDescending = Engine.GetGUIObjectByName("isOrderDescending");
+	var sortBy = Engine.GetGUIObjectByName("sortBy");
+	var orderDescending = Engine.GetGUIObjectByName("isOrderDescending");
+	var isDescending = orderDescending && orderDescending.checked;
 
-	// sort alphanumerically:
-	if (!GUIList_sortBy || GUIList_sortBy.selected <= 0)
+	// Enabled mods should not be sorted (or at least not by default,
+	// at least in one of the ways below; sorting them according to
+	// dependencies might be nice) (TODO)
+	if (listObjectName != "modsEnabledList")
 	{
-		mods.sort(function(akey, bkey)
+		// sort alphanumerically:
+		if (!sortBy || sortBy.selected <= 0)
 		{
-			var a = g_mods[akey];
-			var b = g_mods[bkey];
-			return ((a.label.toLowerCase() > b.label.toLowerCase()) ? 1 
-				: (b.label.toLowerCase() > a.label.toLowerCase()) ? -1 
-				: 0); 
-		});
-	}
-	// sort by mod total size:
-	else if (GUIList_sortBy.selected == 1)
-	{
-		mods.sort(function(akey, bkey)
+			mods.sort(function(akey, bkey)
+			{
+				var a = g_mods[akey];
+				var b = g_mods[bkey];
+				return ((a.label.toLowerCase() > b.label.toLowerCase()) ? 1 
+					: (b.label.toLowerCase() > a.label.toLowerCase()) ? -1 
+					: 0); 
+			});
+		}
+		// sort by mod total size:
+		else if (sortBy.selected == 1)
 		{
-			var a = g_mods[akey];
-			var b = g_mods[bkey];
-			if (isOrderDescending && isOrderDescending.checked)
-				return ((a.total_size > b.total_size) ? 1 
-					: (b.total_size > a.total_size) ? -1 
+			mods.sort(function(akey, bkey)
+			{
+				var a = g_mods[akey];
+				var b = g_mods[bkey];
+				var ret = ((a.total_size > b.total_size) ? -1 
+					: (b.total_size > a.total_size) ? 1 
 					: 0);
-			return ((a.total_size > b.total_size) ? -1 
-				: (b.total_size > a.total_size) ? 1 
-				: 0);
-		});
+				return ret * (isDescending ? -1 : 1);
+			});
+		}
 	}
 
-	// 1) FILTER OUT THOSE MODS THAT MATCH THE FILTERS
 	var modFolderNameList = [];
 	var modLabelList = [];
 	var modDescriptionList = [];
@@ -173,7 +170,7 @@ function generateModsList(listObjectName, mods)
 	var modDependenciesList = [];
 	mods.forEach(function(mod)
 	{
-		if (filterMod(g_mods[mod])) // TODO does this want a JSON?
+		if (filterMod(g_mods[mod]))
 			return;
 //		if (g_modTypes.indexOf(jsonToReadModsFrom[key].type) !== -1)
 //			g_modTypes.push(jsonToReadModsFrom[key].type); 
@@ -214,9 +211,8 @@ function generateModsList(listObjectName, mods)
 		modDependenciesList.push(modDependencies);
 	});
 
-	// 2) POPULATE GUI LISTS WITH THE SORTED AND FILTERED DATA.
+	// Update the list
 	var obj  = Engine.GetGUIObjectByName(listObjectName);
-
 	obj.list_name = modFolderNameList;
 	obj.list_modLabel = modLabelList;
 	obj.list_modType = modTypeList;
@@ -260,16 +256,18 @@ function enableMod()
 {
 	var obj = Engine.GetGUIObjectByName("modsAvailableList");
 	var pos = obj.selected;
+	if (pos === -1)
+		return;
 
 	var mod = g_modsAvailable[pos];
-	warn("addMod: "+mod);
 
 	// Move it to the other table
 	// TODO check dependencies somewhere, or just warn about non-satisfied deps
 	g_modsEnabled.push(g_modsAvailable.splice(pos, 1)[0]);
 
-	// TODO adjust the index, but if there are no more elements left set it to -1 (no selection)
-	obj.selected = -1;
+	if (pos >= g_modsAvailable.length)
+		pos--;
+	obj.selected = pos;
 
 	generateModsLists();
 }
@@ -278,15 +276,16 @@ function disableMod()
 {
 	var obj = Engine.GetGUIObjectByName("modsEnabledList");
 	var pos = obj.selected;
+	if (pos === -1)
+		return;
 
 	var mod = g_modsEnabled[pos];
-	warn("removeMod: "+mod);
 
-	// TODO Add it to g_modsAvailable in a sorted way
 	g_modsAvailable.push(g_modsEnabled.splice(pos, 1)[0]);
 
-	// TODO set selected to something sensible
-	obj.selected = -1;
+	if (pos >= g_modsEnabled.length)
+		pos--;
+	obj.selected = pos;
 
 	generateModsLists();
 }
