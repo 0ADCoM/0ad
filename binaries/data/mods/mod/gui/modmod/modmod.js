@@ -40,13 +40,7 @@ var g_mods = {}; // Contains all JSONs as explained in the structure above
 var g_modsEnabled = []; // folder names
 var g_modsAvailable = []; // folder names
 
-const SORT_BY_OPTION_ALPHANUMERICAL = 1;
-const SORT_BY_OPTION_TOTAL_SIZE = 2;
-var g_sortByOptions;
-g_sortByOptions = [];
-g_sortByOptions[SORT_BY_OPTION_ALPHANUMERICAL] = "Alphanumerical";
-g_sortByOptions[SORT_BY_OPTION_TOTAL_SIZE] = "Total Size";
-/*, "more sorting criteria"*/
+var g_sortByOptions = ["", "Alphanumerical", "Total Size"];
 
 var g_modTypes = [];
 
@@ -235,21 +229,6 @@ function arePreconditionsMet()
 		return false;
 	}
 	return true;
-}
-
-function getPositionByValue(listObjectName, value)
-{
-	if (!listObjectName || !value)
-		return -1;
-
-	var gui_obj = Engine.GetGUIObjectByName(listObjectName);
-	var gui_list = gui_obj.list;
-	var selected_object = gui_list[gui_obj.selected];
-	for (var pos = 0; pos < gui_list.length; pos++)
-		if (gui_list[pos] == selected_object)
-			return pos;
-
-	return -1;
 }
 
 function enableMod()
