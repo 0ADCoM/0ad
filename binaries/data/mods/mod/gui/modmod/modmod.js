@@ -265,9 +265,37 @@ function disableMod()
 
 	g_modsAvailable.push(g_modsEnabled.splice(pos, 1)[0]);
 
-	if (pos >= g_modsEnabled.length)
-		pos--;
+    // remove all mods that depend on the removed mod:
+    var modsEnabled_index = -1;
+    while (++modsEnabled_index < g_modsEnabled.length)
+    {
+        // as the removed mod was already removed we don't have to skip here.
+        var enabledMod = g_modsEnabled[modsEnabled_index];
+        warn('enabledMod: ' + enabledMod);
+        for each (var dependency in g_mods[enabledMod].dependencies)
+        {
+            warn('dependency: ' + dependency);
+            if (dependency == "")
+                continue;
+            // does the dependency note the mod which was removed?
+            if (mod.indexOf(dependency) !== -1 
+                    || dependency == g_mods[mod].name 
+                    || dependency == g_mods[mod].label)
+            {
+                //warn('mod.indexOf(dependency): ' + (mod.indexOf(dependency) !== -1)
+                //        + '  dependency == g_mods[mod].name: ' + (dependency == g_mods[mod].name)
+                //        + '  dependency == g_mods[mod].label: ' + (dependency == g_mods[mod].label));
+                g_modsAvailable.push(g_modsEnabled.splice(modsEnabled_index, 1)[0]);
+            }
+        }
+    }
+    // select the last element even if more than 1 mod has been removed:
+	if (pos > g_modsEnabled.length - 1)
+		pos = g_modsEnabled.length - 1;
 	obj.selected = pos;
+
+
+
 
 	generateModsLists();
 }
