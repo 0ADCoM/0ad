@@ -40,9 +40,9 @@ var g_mods = {}; // Contains all JSONs as explained in the structure above
 var g_modsEnabled = []; // folder names
 var g_modsAvailable = []; // folder names
 
-var g_sortByOptions = ["", "Alphanumerical", "Total Size"];
+var g_sortByOptions = ["-", "Alphanumerical", "Total Size"];
 
-var g_modTypes = [];
+var g_modTypes = [];//["Mod Types Filter", "Any"];
 
 /*=======FUNCTIONS============================================*/
 /*
@@ -164,10 +164,10 @@ function generateModsList(listObjectName, mods)
 	var modDependenciesList = [];
 	mods.forEach(function(mod)
 	{
+		if (g_modTypes.indexOf(g_mods[mod].type) == -1)
+			g_modTypes.push(g_mods[mod].type); 
 		if (filterMod(g_mods[mod]))
 			return;
-//		if (g_modTypes.indexOf(jsonToReadModsFrom[key].type) !== -1)
-//			g_modTypes.push(jsonToReadModsFrom[key].type); 
 
 		modFolderNameList.push(mod);
 
@@ -242,6 +242,9 @@ function enableMod()
 
 	// Move it to the other table
 	// TODO check dependencies somewhere, or just warn about non-satisfied deps
+    if (!areDependenciesMet(mod))
+        return;
+
 	g_modsEnabled.push(g_modsAvailable.splice(pos, 1)[0]);
 
 	if (pos >= g_modsAvailable.length)
@@ -390,4 +393,12 @@ function moveCurrItem(objectName, moveBy = 1, objectNameAppend = '', guiUpdate_c
 	if (guiUpdate_callback)
 		guiUpdate_callback(objectName);
 }
+
+function areDependenciesMet(mod)
+{
+    
+
+
+}
+
 
