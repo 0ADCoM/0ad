@@ -396,8 +396,15 @@ function moveCurrItem(objectName, moveBy = 1, objectNameAppend = '', guiUpdate_c
 
 function areDependenciesMet(mod)
 {
-    
-
+    for each (var dependency in g_mods[mod].dependencies)
+    {
+        if (g_modsEnabled.indexOf(dependency) == -1)
+        {
+            Engine.GetGUIObjectByName("message").caption = 'Message: [color="250 100 100"]Dependeny not met: '+ dependency +'[/color]';
+            return false;
+        }
+    }
+    return true;
 
 }
 

@@ -72,7 +72,7 @@
 			</object>
 
 			<!-- Checkboxes -->
-			<object type="text" size="22 0% 100% 24" text_align="left" textcolor="white">
+			<object name="message" type="text" size="22 0% 100% 24" text_align="left" textcolor="white">
 				Show experimental/unchecked/unofficial mods (only official mods allowed for Multiplayer? Or mp games set which level of mods they want to allow?).
 			</object>
 			<object name="showExperimentalModsFilter"
@@ -134,7 +134,7 @@
 			</object>
 
 			<!-- LIST (enabled mods are listed here in realtime, mods can be moved up and down in the list oreder) -->
-			<object name="modsEnabledList" style="ModernList" type="olist" size="0 25 100% 100%" font="sans-stroke-13">
+			<object name="modsEnabledList" style="ModernList" type="olist" size="0 25 95% 100%" font="sans-stroke-13">
 				<!-- List headers -->
 				<def id="name" color="100 100 200" width="10%">
 					<translatableAttribute id="heading">Folder Name</translatableAttribute>
