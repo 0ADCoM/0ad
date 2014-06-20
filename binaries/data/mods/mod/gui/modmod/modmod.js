@@ -398,14 +398,29 @@ function areDependenciesMet(mod)
 {
     for each (var dependency in g_mods[mod].dependencies)
     {
-        if (g_modsEnabled.indexOf(dependency) == -1)
+        if (!isDependencyMet(dependency))
         {
-            Engine.GetGUIObjectByName("message").caption = 'Message: [color="250 100 100"]Dependeny not met: '+ dependency +'[/color]';
+            Engine.GetGUIObjectByName("message").caption = 'Message: [color="250 100 100"]Dependency not met: '+ dependency +'[/color]';
             return false;
         }
     }
+    Engine.GetGUIObjectByName("message").caption = 'Message: [color="100 250 100"]All dependencies met: '+ g_mods[mod].dependencies.join(' ') +'[/color]';
     return true;
 
 }
 
-
+function isDependencyMet(dependency) 
+{
+    // modsEnabled_key currently is the mod folder name.
+    for each (var modsEnabled_key in g_modsEnabled)
+    {
+        // e.g. 0ad.001   (if the mod folder name was renamed.)
+        // TODO what about version numbers?
+        if (modsEnabled_key.indexOf(dependency) !== -1)
+            return true;
+        var modJson = g_mods[modsEnabled_key];
+        if (modJson.label == dependency || modJson.name == dependency)
+            return true;
+    }
+    return false;
+}
