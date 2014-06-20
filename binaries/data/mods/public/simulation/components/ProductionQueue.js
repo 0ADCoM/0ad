@@ -432,6 +432,7 @@ ProductionQueue.prototype.GetQueue = function()
 			"count": item.count,
 			"neededSlots": item.neededSlots,
 			"progress": 1 - ( item.timeRemaining / (item.timeTotal || 1) ),
+			"timeRemaining": item.timeRemaining,
 			"metadata": item.metadata,
 		});
 	}
@@ -550,7 +551,7 @@ ProductionQueue.prototype.SpawnUnits = function(templateName, count, metadata)
 		if (cmpAutoGarrison && cmpAutoGarrison.PerformGarrison(ent))
 		{
 			var cmpUnitAI = Engine.QueryInterface(ent, IID_UnitAI);
-			cmpUnitAI.Autogarrison();
+			cmpUnitAI.Autogarrison(this.entity);
 		}
 		else
 		{
@@ -664,6 +665,8 @@ ProductionQueue.prototype.ProgressTimeout = function(data)
 			}
 
 			item.productionStarted = true;
+			if (item.unitTemplate)
+				Engine.PostMessage(this.entity, MT_TrainingStarted, {"entity": this.entity});
 		}
 
 		// If we won't finish the batch now, just update its timer

@@ -89,6 +89,11 @@ function getPlayerData(playerAssignments)
 	return players;
 }
 
+function rgbToGuiColor(color)
+{
+	return color.r + " " + color.g + " " + color.b;
+}
+
 function findGuidForPlayerID(playerAssignments, player)
 {
 	for (var playerGuid in playerAssignments)
@@ -282,130 +287,14 @@ function armorTypesToText(dmg)
 function getEntityCommandsList(entState)
 {
 	var commands = [];
-	if (entState.garrisonHolder)
+	for (var c in entityCommands)
 	{
-		commands.push({
-		    "name": "unload-all",
-		    "tooltip": translate("Unload All"),
-		    "icon": "garrison-out.png"
-		});
+		var info = entityCommands[c].getInfo(entState);
+		if (!info)
+			continue;
+		info.name = c;
+		commands.push(info);
 	}
-
-	commands.push({
-	    "name": "delete",
-	    "tooltip": translate("Delete"),
-	    "icon": "kill_small.png"
-	});
-
-	if (hasClass(entState, "Unit"))
-	{
-		commands.push({
-		    "name": "stop",
-		    "tooltip": translate("Stop"),
-		    "icon": "stop.png"
-		});
-	}
-
-	if (entState.unitAI)
-	{
-		if (entState.turretParent)
-		{
-			var parent = GetEntityState(entState.turretParent);
-			if (
-				parent.garrisonHolder && 
-				parent.garrisonHolder.entities.indexOf(entState.id) != -1
-			)
-				commands.push({
-					"name": "unload",
-					"tooltip": translate("Unload"),
-					"icon": "garrison-out.png"
-				});
-		}
-		else
-			commands.push({
-				"name": "garrison",
-				"tooltip": translate("Garrison"),
-				"icon": "garrison.png"
-			});
-	}
-
-	if (entState.buildEntities)
-	{
-		commands.push({
-		    "name": "repair",
-		    "tooltip": translate("Repair"),
-		    "icon": "repair.png"
-		});
-	}
-
-	if (entState.rallyPoint)
-	{
-		commands.push({
-		    "name": "focus-rally",
-		    "tooltip": translate("Focus on Rally Point"),
-		    "icon": "focus-rally.png"
-		});
-	}
-
-	if (entState.unitAI && entState.unitAI.hasWorkOrders)
-	{
-		commands.push({
-		    "name": "back-to-work",
-		    "tooltip": translate("Back to Work"),
-		    "icon": "production.png"
-		});
-	}
-
-	if (entState.unitAI && entState.unitAI.canGuard && !entState.unitAI.isGuarding)
-	{
-		commands.push({
-		    "name": "add-guard",
-		    "tooltip": translate("Guard"),
-		    "icon": "add-guard.png"
-		});
-	}
-
-	if (entState.unitAI && entState.unitAI.isGuarding)
-	{
-		commands.push({
-		    "name": "remove-guard",
-		    "tooltip": translate("Remove guard"),
-		    "icon": "remove-guard.png"
-		});
-	}
-
-	if (hasClass(entState, "Market"))
-	{
-		commands.push({
-		    "name": "select-trading-goods",
-		    "tooltip": translate("Select trading goods"),
-		    "icon": "economics.png"
-		});
-	}
-
-	if(entState.alertRaiser)
-	{
-		if(entState.alertRaiser.canIncreaseLevel)
-		{
-			if(entState.alertRaiser.hasRaisedAlert)
-				var tooltip = translate("Increase the alert level to protect more units");
-			else
-				var tooltip = translate("Raise an alert!");
-			commands.push({
-				"name": "increase-alert-level",
-				"tooltip": tooltip,
-				"icon": "bell_level1.png"
-			});
-		}
-
-		if(entState.alertRaiser.hasRaisedAlert)
-			commands.push({
-				"name": "alert-end",
-				"tooltip": translate("End of alert."),
-				"icon": "bell_level0.png"
-			});
-	}
-
 	return commands;
 }
 
@@ -747,7 +636,7 @@ function getEntityOrHolder(ent)
 {
 	var entState = GetEntityState(ent);
 	if (entState && !entState.position && entState.unitAI && entState.unitAI.orders.length > 0 &&
-			entState.unitAI.orders[0].type == "Garrison")
+			(entState.unitAI.orders[0].type == "Garrison" || entState.unitAI.orders[0].type == "Autogarrison"))
 		return entState.unitAI.orders[0].data.target;
 
 	return ent;

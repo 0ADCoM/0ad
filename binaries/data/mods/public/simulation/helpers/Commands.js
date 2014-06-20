@@ -23,7 +23,6 @@ function ProcessCommand(player, cmd)
 	if (cmd.entities)
 		data.entities = FilterEntityList(cmd.entities, player, data.controlAllUnits);
 
-
 	// Note: checks of UnitAI targets are not robust enough here, as ownership
 	//	can change after the order is issued, they should be checked by UnitAI
 	//	when the specific behavior (e.g. attack, garrison) is performed.
@@ -37,13 +36,12 @@ function ProcessCommand(player, cmd)
 		error("Invalid command: unknown command type: "+uneval(cmd));
 }
 
-	
 var commands = {
 	"debug-print": function(player, cmd, data)
 	{
 		print(cmd.message);
 	},
-	
+
 	"chat": function(player, cmd, data)
 	{
 		var cmpGuiInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
@@ -55,12 +53,12 @@ var commands = {
 		var cmpGuiInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
 		cmpGuiInterface.PushNotification({"type": cmd.type, "player": player, "message": cmd.message});
 	},
-		
+
 	"cheat": function(player, cmd, data)
 	{
 		Cheat(cmd);
 	},
-		
+
 	"quit": function(player, cmd, data)
 	{
 		// Let the AI exit the game for testing purposes
@@ -187,7 +185,7 @@ var commands = {
 			cmpUnitAI.Gather(cmd.target, cmd.queued);
 		});
 	},
-		
+
 	"gather-near-position": function(player, cmd, data)
 	{
 		GetFormationUnitAIs(data.entities, player).forEach(function(cmpUnitAI) {
@@ -209,7 +207,7 @@ var commands = {
 			cmpUnitAI.ReturnResource(cmd.target, cmd.queued);
 		});
 	},
-		
+
 	"back-to-work": function(player, cmd, data)
 	{
 		for each (var ent in data.entities)
@@ -240,96 +238,96 @@ var commands = {
 			unitCategory = template.TrainingRestrictions.Category;
 
 		// Verify that the building(s) can be controlled by the player
-		if (data.entities.length > 0)
+		if (data.entities.length <= 0)
 		{
-			for each (var ent in data.entities)
-			{
-				if (unitCategory)
-				{
-					var cmpPlayerEntityLimits = QueryOwnerInterface(ent, IID_EntityLimits);
-					if (!cmpPlayerEntityLimits.AllowedToTrain(unitCategory, cmd.count))
-					{
-						if (g_DebugCommands)
-							warn(unitCategory + " train limit is reached: " + uneval(cmd));
-						continue;
-					}
-				}
+			 if (g_DebugCommands)
+				warn("Invalid command: training building(s) cannot be controlled by player "+player+": "+uneval(cmd));
+			return;
+		}
 
-				var cmpTechnologyManager = QueryOwnerInterface(ent, IID_TechnologyManager);
-				if (cmpTechnologyManager.CanProduce(cmd.template))
+		for each (var ent in data.entities)
+		{
+			if (unitCategory)
+			{
+				var cmpPlayerEntityLimits = QueryOwnerInterface(ent, IID_EntityLimits);
+				if (!cmpPlayerEntityLimits.AllowedToTrain(unitCategory, cmd.count))
 				{
-					var queue = Engine.QueryInterface(ent, IID_ProductionQueue);
-					// Check if the building can train the unit
-					// TODO: the AI API does not take promotion technologies into account for the list of trainable units
-					// (it is taken directly from the unit template). Here is a temporary fix. 
-					if (queue && data.cmpPlayer.IsAI())
-					{
-						var len = cmd.template.length;
-						var list = queue.GetEntitiesList();
-						if (cmd.template.substr(len-2,2) === "_b" && list.indexOf(cmd.template) === -1)
-						{
-							var promo_a = cmd.template.substr(0,len-2) + "_a";
-							var promo_e = cmd.template.substr(0,len-2) + "_e";
-							if (list.indexOf(promo_a) !== -1)
-								cmd.template = promo_a;
-							else if (list.indexOf(promo_e) !== -1)
-								cmd.template = promo_e;
-						}
-					}
-					if (queue && queue.GetEntitiesList().indexOf(cmd.template) != -1)
-						if ("metadata" in cmd)
-							queue.AddBatch(cmd.template, "unit", +cmd.count, cmd.metadata);
-						else
-							queue.AddBatch(cmd.template, "unit", +cmd.count);
-				}
-				else if (g_DebugCommands)
-				{
-					warn("Invalid command: training requires unresearched technology: " + uneval(cmd));
+					if (g_DebugCommands)
+						warn(unitCategory + " train limit is reached: " + uneval(cmd));
+					continue;
 				}
 			}
-		}
-		else if (g_DebugCommands)
-		{
-			warn("Invalid command: training building(s) cannot be controlled by player "+player+": "+uneval(cmd));
+
+			var cmpTechnologyManager = QueryOwnerInterface(ent, IID_TechnologyManager);
+			if (!cmpTechnologyManager.CanProduce(cmd.template))
+			{
+				if (g_DebugCommands)
+					warn("Invalid command: training requires unresearched technology: " + uneval(cmd));
+				continue;
+			}
+
+			var queue = Engine.QueryInterface(ent, IID_ProductionQueue);
+			// Check if the building can train the unit
+			// TODO: the AI API does not take promotion technologies into account for the list of trainable units
+			// (it is taken directly from the unit template). Here is a temporary fix. 
+			if (queue && data.cmpPlayer.IsAI())
+			{
+				var len = cmd.template.length;
+				var list = queue.GetEntitiesList();
+				if (cmd.template.substr(len-2,2) === "_b" && list.indexOf(cmd.template) === -1)
+				{
+					var promo_a = cmd.template.substr(0,len-2) + "_a";
+					var promo_e = cmd.template.substr(0,len-2) + "_e";
+					if (list.indexOf(promo_a) !== -1)
+						cmd.template = promo_a;
+					else if (list.indexOf(promo_e) !== -1)
+						cmd.template = promo_e;
+				}
+			}
+			if (queue && queue.GetEntitiesList().indexOf(cmd.template) != -1)
+				if ("metadata" in cmd)
+					queue.AddBatch(cmd.template, "unit", +cmd.count, cmd.metadata);
+				else
+					queue.AddBatch(cmd.template, "unit", +cmd.count);
 		}
 	},
 
 	"research": function(player, cmd, data)
 	{
 		// Verify that the building can be controlled by the player
-		if (CanControlUnit(cmd.entity, player, data.controlAllUnits))
+		if (!CanControlUnit(cmd.entity, player, data.controlAllUnits))
 		{
-			var cmpTechnologyManager = QueryOwnerInterface(cmd.entity, IID_TechnologyManager);
-			if (cmpTechnologyManager.CanResearch(cmd.template))
-			{
-				var queue = Engine.QueryInterface(cmd.entity, IID_ProductionQueue);
-				if (queue)
-					queue.AddBatch(cmd.template, "technology");
-			}
-			else if (g_DebugCommands)
-			{
+			if (g_DebugCommands)
+				warn("Invalid command: research building cannot be controlled by player "+player+": "+uneval(cmd));
+			return;
+		}
+
+		var cmpTechnologyManager = QueryOwnerInterface(cmd.entity, IID_TechnologyManager);
+		if (!cmpTechnologyManager.CanResearch(cmd.template))
+		{
+			if (g_DebugCommands)
 				warn("Invalid command: Requirements to research technology are not met: " + uneval(cmd));
-			}
+			return;
 		}
-		else if (g_DebugCommands)
-		{
-			warn("Invalid command: research building cannot be controlled by player "+player+": "+uneval(cmd));
-		}
+
+		var queue = Engine.QueryInterface(cmd.entity, IID_ProductionQueue);
+		if (queue)
+			queue.AddBatch(cmd.template, "technology");
 	},
 
 	"stop-production": function(player, cmd, data)
 	{
 		// Verify that the building can be controlled by the player
-		if (CanControlUnit(cmd.entity, player, data.controlAllUnits))
+		if (!CanControlUnit(cmd.entity, player, data.controlAllUnits))
 		{
-			var queue = Engine.QueryInterface(cmd.entity, IID_ProductionQueue);
-			if (queue)
-				queue.RemoveBatch(cmd.id);
+			if (g_DebugCommands)
+				warn("Invalid command: production building cannot be controlled by player "+player+": "+uneval(cmd));
+			return;
 		}
-		else if (g_DebugCommands)
-		{
-			warn("Invalid command: production building cannot be controlled by player "+player+": "+uneval(cmd));
-		}
+
+		var queue = Engine.QueryInterface(cmd.entity, IID_ProductionQueue);
+		if (queue)
+			queue.RemoveBatch(cmd.id);
 	},
 
 	"construct": function(player, cmd, data)
@@ -393,31 +391,31 @@ var commands = {
 	"garrison": function(player, cmd, data)
 	{
 		// Verify that the building can be controlled by the player or is mutualAlly
-		if (CanControlUnitOrIsAlly(cmd.target, player, data.controlAllUnits))
+		if (!CanControlUnitOrIsAlly(cmd.target, player, data.controlAllUnits))
 		{
-			GetFormationUnitAIs(data.entities, player).forEach(function(cmpUnitAI) {
-				cmpUnitAI.Garrison(cmd.target, cmd.queued);
-			});
+			if (g_DebugCommands)
+				warn("Invalid command: garrison target cannot be controlled by player "+player+" (or ally): "+uneval(cmd));
+			return;
 		}
-		else if (g_DebugCommands)
-		{
-			warn("Invalid command: garrison target cannot be controlled by player "+player+" (or ally): "+uneval(cmd));
-		}
+
+		GetFormationUnitAIs(data.entities, player).forEach(function(cmpUnitAI) {
+			cmpUnitAI.Garrison(cmd.target, cmd.queued);
+		});
 	},
 
 	"guard": function(player, cmd, data)
 	{
 		// Verify that the target can be controlled by the player or is mutualAlly
-		if (CanControlUnitOrIsAlly(cmd.target, player, data.controlAllUnits))
+		if (!CanControlUnitOrIsAlly(cmd.target, player, data.controlAllUnits))
 		{
-			GetFormationUnitAIs(data.entities, player).forEach(function(cmpUnitAI) {
-				cmpUnitAI.Guard(cmd.target, cmd.queued);
-			});
+			if (g_DebugCommands)
+				warn("Invalid command: guard/escort target cannot be controlled by player "+player+": "+uneval(cmd));
+			return;
 		}
-		else if (g_DebugCommands)
-		{
-			warn("Invalid command: guard/escort target cannot be controlled by player "+player+": "+uneval(cmd));
-		}
+
+		GetFormationUnitAIs(data.entities, player).forEach(function(cmpUnitAI) {
+			cmpUnitAI.Guard(cmd.target, cmd.queued);
+		});
 	},
 
 	"stop": function(player, cmd, data)
@@ -430,26 +428,26 @@ var commands = {
 	"unload": function(player, cmd, data)
 	{
 		// Verify that the building can be controlled by the player or is mutualAlly
-		if (CanControlUnitOrIsAlly(cmd.garrisonHolder, player, data.controlAllUnits))
+		if (!CanControlUnitOrIsAlly(cmd.garrisonHolder, player, data.controlAllUnits))
 		{
-			var cmpGarrisonHolder = Engine.QueryInterface(cmd.garrisonHolder, IID_GarrisonHolder);
-			var notUngarrisoned = 0;
-
-			// The owner can ungarrison every garrisoned unit
-			if (IsOwnedByPlayer(player, cmd.garrisonHolder))
-				data.entities = cmd.entities;
-
-			for each (var ent in data.entities)
-				if (!cmpGarrisonHolder || !cmpGarrisonHolder.Unload(ent))
-					notUngarrisoned++;
-
-			if (notUngarrisoned != 0)
-				notifyUnloadFailure(player, cmd.garrisonHolder)
+			if (g_DebugCommands)
+				warn("Invalid command: unload target cannot be controlled by player "+player+" (or ally): "+uneval(cmd));
+			return;
 		}
-		else if (g_DebugCommands)
-		{
-			warn("Invalid command: unload target cannot be controlled by player "+player+" (or ally): "+uneval(cmd));
-		}
+
+		var cmpGarrisonHolder = Engine.QueryInterface(cmd.garrisonHolder, IID_GarrisonHolder);
+		var notUngarrisoned = 0;
+
+		// The owner can ungarrison every garrisoned unit
+		if (IsOwnedByPlayer(player, cmd.garrisonHolder))
+			data.entities = cmd.entities;
+
+		for each (var ent in data.entities)
+			if (!cmpGarrisonHolder || !cmpGarrisonHolder.Unload(ent))
+				notUngarrisoned++;
+
+		if (notUngarrisoned != 0)
+			notifyUnloadFailure(player, cmd.garrisonHolder)
 	},
 
 	"unload-template": function(player, cmd, data)
@@ -496,7 +494,7 @@ var commands = {
 				notifyUnloadFailure(player, garrisonHolder)
 		}
 	},
-	
+
 	"increase-alert-level": function(player, cmd, data)
 	{
 		for each (var ent in data.entities)
@@ -506,7 +504,7 @@ var commands = {
 				notifyAlertFailure(player);
 		}
 	},
-	
+
 	"alert-end": function(player, cmd, data)
 	{
 		for each (var ent in data.entities)
@@ -576,12 +574,6 @@ var commands = {
 		GetFormationUnitAIs(data.entities, player).forEach(function(cmpUnitAI) {
 			cmpUnitAI.SetupTradeRoute(cmd.target, cmd.source, cmd.route, cmd.queued);
 		});
-		for each (var ent in data.entities)
-		{
-			var cmpTrader = Engine.QueryInterface(ent, IID_Trader);
-			if (cmpTrader)
-				cmpTrader.SetRequiredGoods(cmd.requiredGoods);
-		}
 	},
 
 	"select-required-goods": function(player, cmd, data)
@@ -604,7 +596,7 @@ var commands = {
 		var cmpBarter = Engine.QueryInterface(SYSTEM_ENTITY, IID_Barter);
 		cmpBarter.ExchangeResources(data.playerEnt, cmd.sell, cmd.buy, cmd.amount);
 	},
-		
+
 	"set-shading-color": function(player, cmd, data)
 	{
 		// Debug command to make an entity brightly colored
@@ -710,31 +702,19 @@ function ExtractFormations(ents)
  * Tries to find the best angle to put a dock at a given position
  * Taken from GuiInterface.js
  */
-function GetDockAngle(templateName,x,y)
+function GetDockAngle(template, x, z)
 {
-	var cmpTemplateMgr = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
-	var template = cmpTemplateMgr.GetTemplate(templateName);
-
-	if (template.BuildRestrictions.Category !== "Dock")
-		return undefined;
-
 	var cmpTerrain = Engine.QueryInterface(SYSTEM_ENTITY, IID_Terrain);
 	var cmpWaterManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_WaterManager);
 	if (!cmpTerrain || !cmpWaterManager)
-	{
 		return undefined;
-	}
 	
 	// Get footprint size
 	var halfSize = 0;
 	if (template.Footprint.Square)
-	{
 		halfSize = Math.max(template.Footprint.Square["@depth"], template.Footprint.Square["@width"])/2;
-	}
 	else if (template.Footprint.Circle)
-	{
 		halfSize = template.Footprint.Circle["@radius"];
-	}
 	
 	/* Find direction of most open water, algorithm:
 	 *	1. Pick points in a circle around dock
@@ -754,28 +734,24 @@ function GetDockAngle(templateName,x,y)
 			var angle = (i/numPoints)*2*Math.PI;
 			var d = halfSize*(dist+1);
 			var nx = x - d*Math.sin(angle);
-			var nz = y + d*Math.cos(angle);
+			var nz = z + d*Math.cos(angle);
 			
 			if (cmpTerrain.GetGroundLevel(nx, nz) < cmpWaterManager.GetWaterLevel(nx, nz))
-			{
 				waterPoints.push(i);
-			}
 		}
 		var consec = [];
 		var length = waterPoints.length;
+		if (!length)
+			continue;
 		for (var i = 0; i < length; ++i)
 		{
 			var count = 0;
 			for (var j = 0; j < (length-1); ++j)
 			{
 				if (((waterPoints[(i + j) % length]+1) % numPoints) == waterPoints[(i + j + 1) % length])
-				{
 					++count;
-				}
 				else
-				{
 					break;
-				}
 			}
 			consec[i] = count;
 		}
@@ -792,9 +768,7 @@ function GetDockAngle(templateName,x,y)
 		
 		// If we've found a shoreline, stop searching
 		if (count != numPoints-1)
-		{
 			return -(((waterPoints[start] + consec[start]/2) % numPoints)/numPoints*2*Math.PI);
-		}
 	}
 	return undefined;
 }
@@ -850,9 +824,14 @@ function TryConstructBuilding(player, cmpPlayer, controlAllUnits, cmd)
 	}
 	
 	// If it's a dock, get the right angle.
-	var angle = GetDockAngle(cmd.template,cmd.x,cmd.z);
-	if (angle !== undefined)
-		cmd.angle = angle;
+	var cmpTemplateMgr = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
+	var template = cmpTemplateMgr.GetTemplate(cmd.template);
+	if (template.BuildRestrictions.Category === "Dock")
+	{
+		var angle = GetDockAngle(template, cmd.x, cmd.z);
+		if (angle !== undefined)
+			cmd.angle = angle;
+	}
 	
 	// Move the foundation to the right place
 	var cmpPosition = Engine.QueryInterface(ent, IID_Position);
@@ -1599,5 +1578,7 @@ function ReplaceBuildingWith(ent, building)
 
 Engine.RegisterGlobal("GetFormationRequirements", GetFormationRequirements);
 Engine.RegisterGlobal("CanMoveEntsIntoFormation", CanMoveEntsIntoFormation);
+Engine.RegisterGlobal("GetDockAngle", GetDockAngle);
 Engine.RegisterGlobal("ProcessCommand", ProcessCommand);
 Engine.RegisterGlobal("commands", commands);
+
